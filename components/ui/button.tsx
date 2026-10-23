@@ -19,7 +19,7 @@ type ButtonLinkProps = Omit<ComponentProps<typeof Link>, "className"> & {
 };
 
 function buttonClassName(variant: ButtonVariant, className = "") {
-  return `inline-flex items-center justify-center rounded-full px-6 py-3 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-teal ${variantClasses[variant]} ${className}`;
+  return `inline-flex items-center justify-center rounded-full px-6 py-3 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#0e716b] ${variantClasses[variant]} ${className}`;
 }
 
 export function Button({ className, variant = "primary", ...props }: ButtonProps) {

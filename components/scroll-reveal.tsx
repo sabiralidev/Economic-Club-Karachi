@@ -21,22 +21,18 @@ export function ScrollReveal({ children, className }: ScrollRevealProps) {
     const media = gsap.matchMedia();
     media.add("(prefers-reduced-motion: no-preference)", () => {
       gsap.utils.toArray<HTMLElement>("[data-reveal]", container).forEach((element, index) => {
-        gsap.fromTo(
-          element,
-          { opacity: 0, y: 24 },
-          {
-            opacity: 1,
-            y: 0,
-            delay: index * 0.08,
-            duration: 0.65,
-            ease: "power2.out",
-            scrollTrigger: {
-              trigger: element,
-              start: "top 88%",
-              toggleActions: "play none none reverse",
-            },
+        gsap.from(element, {
+          opacity: 0,
+          y: 20,
+          delay: index * 0.06,
+          duration: 0.6,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: element,
+            start: "top 88%",
+            once: true,
           },
-        );
+        });
       });
     });
 
