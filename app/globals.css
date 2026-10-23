@@ -2,26 +2,30 @@
 
 @theme {
   --color-brand-purple: #21162f;
-  --color-brand-ink: #191421;
+  --color-brand-ink: #1c1a21;
   --color-brand-teal: #29c6bb;
   --color-brand-yellow: #f4c542;
   --color-brand-blue: #4185d4;
   --color-brand-green: #49a878;
-  --color-brand-paper: #f8f6f2;
-  --font-sans: Arial, Helvetica, sans-serif;
+  --color-brand-paper: #f6f5f1;
+  --font-sans: var(--font-body);
+  --font-display: var(--font-editorial);
   --container-content: 76rem;
-  --shadow-card: 0 18px 48px rgba(33, 22, 47, 0.08);
+  --shadow-card: 0 16px 42px rgba(33, 22, 47, 0.08);
 }
 
 :root {
   color-scheme: light;
   --brand-purple: #21162f;
-  --brand-ink: #191421;
+  --brand-ink: #1c1a21;
   --brand-teal: #29c6bb;
   --brand-yellow: #f4c542;
   --brand-blue: #4185d4;
   --brand-green: #49a878;
-  --brand-paper: #f8f6f2;
+  --brand-paper: #f6f5f1;
+  --surface-white: #ffffff;
+  --surface-soft: #eeece7;
+  --focus-ring: #0e716b;
 }
 
 * {
@@ -30,12 +34,13 @@
 
 html {
   scroll-behavior: smooth;
+  scroll-padding-top: 6rem;
 }
 
 body {
   background: var(--brand-paper);
   color: var(--brand-ink);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-body), sans-serif;
   margin: 0;
   min-height: 100vh;
 }
@@ -46,7 +51,41 @@ body {
 }
 
 :focus-visible {
-  outline-color: var(--brand-teal);
+  outline-color: var(--focus-ring);
+  outline-offset: 3px;
+}
+
+.font-display {
+  font-family: var(--font-editorial), Georgia, serif;
+}
+
+.editorial-link {
+  text-decoration-color: var(--brand-teal);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 5px;
+}
+
+.editorial-link:hover {
+  text-decoration-color: var(--brand-yellow);
+}
+
+.hero-image {
+  transform: scale(1.01);
+  transition: transform 700ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.hero-image-frame:hover .hero-image {
+  transform: scale(1.045);
+}
+
+.home-card {
+  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.home-card:hover {
+  border-color: rgba(33, 22, 47, 0.25);
+  box-shadow: 0 18px 42px rgba(33, 22, 47, 0.1);
+  transform: translateY(-3px);
 }
 
 @media (prefers-reduced-motion: reduce) {
