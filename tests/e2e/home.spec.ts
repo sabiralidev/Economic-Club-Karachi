@@ -84,7 +84,8 @@ test("unknown event and gallery slugs return not found", async ({ page }) => {
 
 test("admin pages and APIs reject unauthenticated access", async ({ page }) => {
   await page.goto("/admin");
-  await expect(page).toHaveURL(/\/admin\/login$/);
+  await expect(page).toHaveURL(/\/admin$/);
+  await expect(page.getByRole("heading", { name: "Admin sign-in" })).toBeVisible();
   const read = await page.request.get("/api/admin/services");
   expect(read.status()).toBe(401);
   await expect(read.json()).resolves.toMatchObject({
