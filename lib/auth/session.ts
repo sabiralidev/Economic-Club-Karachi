@@ -3,25 +3,30 @@ import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { getServerEnvironment } from "@/lib/env";
+import { connectMongo } from "@/lib/db/mongodb";
+import { AdminUser } from "@/models/admin-user";
 
 const SESSION_COOKIE = "eck-admin-session";
 const SESSION_LIFETIME_SECONDS = 60 * 60 * 8;
 
 export type AdminSession = {
   userId: string;
-  role: "admin";
+  email: string;
+  role: "admin" | "editor";
 };
 
 function getSigningKey(): Uint8Array {
   const secret = getServerEnvironment().ADMIN_SESSION_SECRET;
   if (!secret) {
-    throw new Error("ADMIN_SESSION_SECRET must be configured for admin authentication.");
+    const error = new Error("ADMIN_SESSION_SECRET must be configured for admin authentication.");
+    error.name = "ServerConfigurationError";
+    throw error;
   }
   return new TextEncoder().encode(secret);
 }
 
-export async function createAdminSession(userId: string): Promise<string> {
-  return new SignJWT({ role: "admin" satisfies AdminSession["role"] })
+export async function createAdminSession(userId: string, role: AdminSession["role"]): Promise<string> {
+  return new SignJWT({ role })
     .setProtectedHeader({ alg: "HS256" })
     .setSubject(userId)
     .setIssuedAt()
@@ -34,13 +39,18 @@ export async function getAdminSession(): Promise<AdminSession | null> {
   if (!token) return null;
 
   const key = getSigningKey();
+  let userId: string;
   try {
     const { payload } = await jwtVerify(token, key, { algorithms: ["HS256"] });
-    if (typeof payload.sub !== "string" || payload.role !== "admin") return null;
-    return { userId: payload.sub, role: "admin" };
+    if (typeof payload.sub !== "string" || (payload.role !== "admin" && payload.role !== "editor")) return null;
+    userId = payload.sub;
   } catch {
     return null;
   }
+  await connectMongo();
+  const user = await AdminUser.findOne({ _id: userId, status: "active" }).select("_id email role").lean();
+  if (!user || (user.role !== "admin" && user.role !== "editor")) return null;
+  return { userId: user._id.toString(), email: user.email, role: user.role };
 }
 
 export async function requireAdminSession(): Promise<AdminSession> {

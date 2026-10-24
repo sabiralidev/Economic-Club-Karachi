@@ -1,4 +1,7 @@
-export default function AdminDashboardPage() {
+import { requireAdminSession } from "@/lib/auth/session";
+
+export default async function AdminDashboardPage() {
+  await requireAdminSession();
   return (
     <section className="mx-auto max-w-content px-5 py-16 sm:px-8">
       <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand-green">Administration</p>

@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
+    "admin:create": "tsx scripts/create-admin.ts",
     "pretest:e2e": "npm run build",
     "test:e2e": "playwright test"
   },
@@ -23,6 +24,7 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@next/env": "^15.5.28",
     "@playwright/test": "^1.55.0",
     "@tailwindcss/postcss": "^4.3.3",
     "@testing-library/jest-dom": "^6.8.0",
@@ -36,6 +38,7 @@
     "jsdom": "^26.1.0",
     "postcss": "^8.5.31",
     "tailwindcss": "^4.3.3",
+    "tsx": "^4.23.15",
     "typescript": "^5.9.2",
     "vitest": "^4.1.12"
   },

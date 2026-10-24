@@ -5,6 +5,7 @@ import { getServerEnvironment } from "@/lib/env";
 type MongooseCache = {
   connection: typeof mongoose | null;
   promise: Promise<typeof mongoose> | null;
+  uri: string | null;
 };
 
 declare global {
@@ -12,25 +13,50 @@ declare global {
   var mongooseCache: MongooseCache | undefined;
 }
 
-const cache = globalThis.mongooseCache ?? { connection: null, promise: null };
+const cache = globalThis.mongooseCache ?? { connection: null, promise: null, uri: null };
 globalThis.mongooseCache = cache;
 
 export async function connectMongo(): Promise<typeof mongoose> {
-  if (cache.connection?.connection.readyState === 1) return cache.connection;
-  if (cache.connection?.connection.readyState === 0) {
-    cache.connection = null;
-    cache.promise = null;
+  let MONGODB_URI: string | undefined;
+  try {
+    ({ MONGODB_URI } = getServerEnvironment());
+  } catch {
+    const error = new Error("MongoDB server configuration is invalid.");
+    error.name = "DatabaseConfigurationError";
+    throw error;
   }
-
-  const { MONGODB_URI } = getServerEnvironment();
   if (!MONGODB_URI) {
     throw new Error("MONGODB_URI is required to use MongoDB-backed features.");
   }
 
+  if (cache.connection?.connection.readyState === 1 && cache.uri === MONGODB_URI) return cache.connection;
+  if (cache.uri && cache.uri !== MONGODB_URI) {
+    if (cache.promise) {
+      try {
+        await cache.promise;
+      } catch {
+        cache.promise = null;
+      }
+    }
+    await mongoose.disconnect();
+  }
+  if (cache.connection?.connection.readyState === 0 || cache.uri !== MONGODB_URI) {
+    cache.connection = null;
+    cache.promise = null;
+    cache.uri = null;
+  }
+
   if (!cache.promise) {
-    cache.promise = mongoose.connect(MONGODB_URI).catch((error: unknown) => {
+    cache.uri = MONGODB_URI;
+    cache.promise = mongoose.connect(MONGODB_URI, {
+      bufferCommands: false,
+      maxPoolSize: 10,
+      minPoolSize: 0,
+      serverSelectionTimeoutMS: 5_000,
+    }).catch((error: unknown) => {
       cache.promise = null;
       cache.connection = null;
+      cache.uri = null;
       throw error;
     });
   }
