@@ -1,0 +1,86 @@
+[
+  {
+    "title": "Macroeconomic Strategy Consulting",
+    "slug": "macroeconomic-strategy-consulting",
+    "summary": "Expert guidance for organizations navigating complex economic environments in Pakistan.",
+    "description": "Our consulting services provide deep insights into fiscal policies, monetary trends, and structural reforms. We help businesses and policy-makers understand the impact of global economic shifts on the local landscape.",
+    "category": "Consulting",
+    "published": true,
+    "archived": false,
+    "image": "/images/services/consulting.jpg",
+    "seo": {
+      "title": "Macroeconomic Strategy | Economic Club Karachi",
+      "description": "Professional economic consulting and strategy services in Karachi."
+    }
+  },
+  {
+    "title": "Industry Analysis & Market Research",
+    "slug": "industry-analysis-market-research",
+    "summary": "Data-driven research to uncover growth opportunities in emerging sectors.",
+    "description": "We specialize in sector-specific analysis covering textiles, technology, agriculture, and energy. Our reports provide actionable intelligence for investors and entrepreneurs looking to scale their operations.",
+    "category": "Research",
+    "published": true,
+    "archived": false,
+    "image": "/images/services/research.jpg",
+    "seo": {
+      "title": "Market Research Karachi | Industry Analysis",
+      "description": "Deep sector-specific market research for the Pakistan market."
+    }
+  },
+  {
+    "title": "Executive Policy Briefings",
+    "slug": "executive-policy-briefings",
+    "summary": "Concise economic intelligence for senior leadership and decision-makers.",
+    "description": "Weekly and monthly briefings that distill complex data into clear, strategic takeaways. Stay ahead of regulatory changes and economic indicators that matter to your bottom line.",
+    "category": "Insights",
+    "published": true,
+    "archived": false,
+    "image": "/images/services/briefings.jpg",
+    "seo": {
+      "title": "Executive Policy Briefings | Economic Insights",
+      "description": "Strategic economic briefings for senior leadership in Pakistan."
+    }
+  },
+  {
+    "title": "Corporate Governance Advisory",
+    "slug": "corporate-governance-advisory",
+    "summary": "Strengthening organizational structures for sustainable growth and compliance.",
+    "description": "We advise boards on best practices, regulatory compliance, and risk management frameworks tailored for the Pakistani corporate environment.",
+    "category": "Advisory",
+    "published": true,
+    "archived": false,
+    "image": "/images/services/governance.jpg",
+    "seo": {
+      "title": "Corporate Governance | Advisory Services Karachi",
+      "description": "Expert board advisory and corporate governance services in Pakistan."
+    }
+  },
+  {
+    "title": "Public Sector Reform Advocacy",
+    "slug": "public-sector-reform-advocacy",
+    "summary": "Partnering with government bodies to enhance efficiency and service delivery.",
+    "description": "Providing technical assistance and research-backed advocacy for reforms in taxation, energy, and privatization sectors.",
+    "category": "Advocacy",
+    "published": true,
+    "archived": false,
+    "image": "/images/services/advocacy.jpg",
+    "seo": {
+      "title": "Public Sector Reforms | Economic Advocacy Pakistan",
+      "description": "Advocating for structural reforms in Pakistan's public sector."
+    }
+  },
+  {
+    "title": "Sustainable Finance Consulting",
+    "slug": "sustainable-finance-consulting",
+    "summary": "Helping financial institutions integrate ESG principles into their portfolios.",
+    "description": "Guidance on green financing, climate risk assessment, and social impact investment strategies for the banking sector.",
+    "category": "Consulting",
+    "published": true,
+    "archived": false,
+    "image": "/images/services/finance.jpg",
+    "seo": {
+      "title": "Sustainable Finance | ESG Consulting Karachi",
+      "description": "Green financing and ESG integration strategies for financial institutions."
+    }
+  }
+]

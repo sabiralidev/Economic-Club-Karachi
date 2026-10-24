@@ -1,0 +1,126 @@
+[
+  {
+    "title": "Annual Economic Summit 2026",
+    "slug": "annual-economic-summit-2026",
+    "summary": "The flagship gathering of Pakistan's brightest economic minds and industry leaders.",
+    "description": "Join us for a day of intensive discussions on 'Pakistan 2030: Resilience & Growth'. Featuring keynote speakers from international financial institutions and local business icons.",
+    "image": "/images/events/summit.jpg",
+    "category": "Summit",
+    "venue": "Marriott Hotel, Karachi",
+    "venueVerified": true,
+    "startDate": "2026-11-15T09:00:00.000Z",
+    "endDate": "2026-11-15T18:00:00.000Z",
+    "status": "upcoming",
+    "registration": {
+      "enabled": true
+    },
+    "published": true,
+    "archived": false,
+    "seo": {
+      "title": "Annual Economic Summit 2026 - Karachi",
+      "description": "Join the premier economic summit in Karachi for 2026."
+    }
+  },
+  {
+    "title": "Tech & Finance Roundtable",
+    "slug": "tech-finance-roundtable",
+    "summary": "Exploring the intersection of FinTech and traditional banking.",
+    "description": "A closed-door session for ECK members to discuss the digital transformation of Pakistan's financial sector.",
+    "category": "Roundtable",
+    "venue": "ECK Boardroom, Clifton",
+    "venueVerified": true,
+    "startDate": "2026-12-05T15:00:00.000Z",
+    "endDate": "2026-12-05T18:00:00.000Z",
+    "status": "upcoming",
+    "registration": {
+      "enabled": true
+    },
+    "published": true,
+    "archived": false,
+    "seo": {
+      "title": "Tech & Finance Roundtable | ECK Events",
+      "description": "Discussing digital transformation in Pakistan's finance sector."
+    }
+  },
+  {
+    "title": "Youth Economic Literacy Workshop",
+    "slug": "youth-economic-literacy-workshop",
+    "summary": "Empowering the next generation with fundamental economic concepts.",
+    "description": "An interactive session for university students to understand inflation, fiscal policy, and personal finance.",
+    "category": "Workshop",
+    "venue": "IBA City Campus, Karachi",
+    "venueVerified": true,
+    "startDate": "2026-10-30T10:00:00.000Z",
+    "endDate": "2026-10-30T14:00:00.000Z",
+    "status": "upcoming",
+    "registration": {
+      "enabled": true
+    },
+    "published": true,
+    "archived": false,
+    "seo": {
+      "title": "Youth Economic Workshop | Learning Karachi",
+      "description": "Economic literacy workshop for students in Karachi."
+    }
+  },
+  {
+    "title": "Pakistan Real Estate Outlook 2027",
+    "slug": "pakistan-real-estate-outlook-2027",
+    "summary": "Strategic insights into the urban development and housing sector.",
+    "description": "A networking dinner followed by a presentation on the impact of new zoning laws and tax reforms on real estate.",
+    "category": "Networking",
+    "venue": "Movenpick Hotel, Karachi",
+    "venueVerified": true,
+    "startDate": "2027-01-20T19:00:00.000Z",
+    "endDate": "2027-01-20T22:00:00.000Z",
+    "status": "upcoming",
+    "registration": {
+      "enabled": true
+    },
+    "published": true,
+    "archived": false,
+    "seo": {
+      "title": "Real Estate Outlook 2027 | Investment Insights",
+      "description": "Future trends and policy impacts on Pakistan's real estate market."
+    }
+  },
+  {
+    "title": "SME Export Readiness Seminar",
+    "slug": "sme-export-readiness-seminar",
+    "summary": "Practical guide for small businesses to enter global markets.",
+    "description": "Experts from the Trade Development Authority discuss compliance, logistics, and international marketing for SMEs.",
+    "category": "Seminar",
+    "venue": "Karachi Chamber of Commerce",
+    "venueVerified": true,
+    "startDate": "2026-11-25T11:00:00.000Z",
+    "endDate": "2026-11-25T15:00:00.000Z",
+    "status": "upcoming",
+    "registration": {
+      "enabled": true
+    },
+    "published": true,
+    "archived": false,
+    "seo": {
+      "title": "SME Export Seminar | Business Growth Karachi",
+      "description": "Helping small businesses prepare for international trade."
+    }
+  },
+  {
+    "title": "Energy Transition Dialogue",
+    "slug": "energy-transition-dialogue",
+    "summary": "Discussing the roadmap for renewable energy adoption in Pakistan.",
+    "description": "A high-level dialogue between power sector stakeholders and environmental economists.",
+    "category": "Dialogue",
+    "venue": "Pearl Continental, Karachi",
+    "venueVerified": true,
+    "startDate": "2026-12-15T14:00:00.000Z",
+    "endDate": "2026-12-15T17:00:00.000Z",
+    "status": "upcoming",
+    "published": true,
+    "archived": false,
+    "seo": {
+      "title": "Energy Transition Dialogue | Sustainability Pakistan",
+      "description": "Strategic talks on renewable energy adoption in Pakistan."
+    }
+  }
+]

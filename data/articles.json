@@ -1,0 +1,90 @@
+[
+  {
+    "title": "The Future of Export-Led Growth in Pakistan",
+    "slug": "future-export-led-growth-pakistan",
+    "excerpt": "Analyzing the shift towards high-value exports and the challenges of global competitiveness.",
+    "body": "Pakistan stands at a crossroads. For decades, the reliance on low-value textiles has limited our growth potential. This article explores how diversification into tech services and value-added agriculture can transform the trade balance.",
+    "featuredImage": "/images/articles/exports.jpg",
+    "category": "Economy",
+    "tags": ["Exports", "Growth", "Policy"],
+    "published": true,
+    "archived": false,
+    "publishedAt": "2026-10-20T10:00:00.000Z",
+    "seo": {
+      "title": "Future of Pakistan Exports | Economic Insights",
+      "description": "Expert analysis on export-led growth strategies for Pakistan."
+    }
+  },
+  {
+    "title": "Navigating the 2026 Inflationary Trends",
+    "slug": "navigating-2026-inflationary-trends",
+    "excerpt": "A deep dive into consumer price indices and supply chain disruptions affecting local markets.",
+    "body": "As global oil prices stabilize, domestic factors continue to drive local inflation. We break down the impact of energy tariffs and food supply chains on the average consumer.",
+    "category": "Market Analysis",
+    "tags": ["Inflation", "Finance", "Consumer"],
+    "published": true,
+    "archived": false,
+    "publishedAt": "2026-10-22T08:30:00.000Z",
+    "seo": {
+      "title": "Inflation Trends 2026 | Pakistan Market Analysis",
+      "description": "Understanding the drivers of inflation in Pakistan for the year 2026."
+    }
+  },
+  {
+    "title": "Digital Transformation in Pakistan's Banking Sector",
+    "slug": "digital-transformation-banking-sector",
+    "excerpt": "How FinTech is reshaping financial inclusion and banking services.",
+    "body": "From mobile wallets to digital-only banks, the landscape of finance is changing rapidly. We examine the regulatory framework and adoption rates among the unbanked population.",
+    "category": "Finance",
+    "tags": ["FinTech", "Banking", "Digital"],
+    "published": true,
+    "archived": false,
+    "publishedAt": "2026-10-24T12:00:00.000Z",
+    "seo": {
+      "title": "Digital Banking Pakistan | FinTech Revolution",
+      "description": "The impact of digital transformation on Pakistan's financial landscape."
+    }
+  },
+  {
+    "title": "The Impact of CPEC Phase II on Industrialization",
+    "slug": "impact-cpec-phase-ii-industrialization",
+    "excerpt": "Evaluating the progress of Special Economic Zones and infrastructure development.",
+    "body": "Phase II of the China-Pakistan Economic Corridor shifts focus to industrial cooperation. We analyze the potential for job creation and local manufacturing growth.",
+    "category": "Development",
+    "tags": ["CPEC", "Industry", "Infrastructure"],
+    "published": true,
+    "archived": false,
+    "seo": {
+      "title": "CPEC Phase II Impact | Industrial Growth Pakistan",
+      "description": "Analyzing the industrial benefits of CPEC Phase II Special Economic Zones."
+    }
+  },
+  {
+    "title": "Agricultural Modernization: A Path to Food Security",
+    "slug": "agricultural-modernization-food-security",
+    "excerpt": "Technological interventions required to boost crop yields and water efficiency.",
+    "body": "Climate change poses a significant threat to Pakistan's agriculture. This piece discusses drip irrigation, heat-resistant seeds, and smart farming techniques.",
+    "category": "Agriculture",
+    "tags": ["Agriculture", "Tech", "Food Security"],
+    "published": true,
+    "archived": false,
+    "seo": {
+      "title": "Agri-Tech Pakistan | Food Security Strategy",
+      "description": "Modernizing agriculture in Pakistan to ensure long-term food security."
+    }
+  },
+  {
+    "title": "Women in Pakistan's Workforce: Economic Potential",
+    "slug": "women-workforce-economic-potential",
+    "excerpt": "Quantifying the impact of increased female participation on GDP growth.",
+    "body": "Reducing gender disparity in the labor market could unlock billions in economic value. We look at successful models and persistent barriers.",
+    "category": "Social Economy",
+    "tags": ["Gender", "Growth", "Workforce"],
+    "published": true,
+    "archived": false,
+    "seo": {
+      "title": "Women in Workforce | Pakistan Economic Growth",
+      "description": "Unlocking the economic potential of female labor participation in Pakistan."
+    }
+  }
+]

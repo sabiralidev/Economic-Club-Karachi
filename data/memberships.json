@@ -1,0 +1,110 @@
+[
+  {
+    "name": "Student Member",
+    "slug": "student-member",
+    "price": {
+      "amount": 2500,
+      "currency": "PKR",
+      "period": "monthly"
+    },
+    "description": "Exclusive access for university students to learn and network with industry professionals.",
+    "features": [
+      "Access to monthly workshops",
+      "Digital library access",
+      "Student networking events",
+      "Economic newsletter subscription"
+    ],
+    "category": "Individual",
+    "active": true
+  },
+  {
+    "name": "Professional Member",
+    "slug": "professional-member",
+    "price": {
+      "amount": 7500,
+      "currency": "PKR",
+      "period": "monthly"
+    },
+    "description": "Designed for mid-career professionals looking to stay ahead of economic trends.",
+    "features": [
+      "Priority registration for summits",
+      "Full research report access",
+      "Quarterly networking dinners",
+      "Voting rights in club forums"
+    ],
+    "category": "Individual",
+    "active": true
+  },
+  {
+    "name": "Corporate Partner",
+    "slug": "corporate-partner",
+    "price": {
+      "amount": 250000,
+      "currency": "PKR",
+      "period": "annually"
+    },
+    "description": "Strategic partnership for organizations to influence policy and brand positioning.",
+    "features": [
+      "Logo placement on website",
+      "4 complimentary summit passes",
+      "Bespoke market research reports",
+      "Private policy briefing sessions"
+    ],
+    "category": "Corporate",
+    "active": true
+  },
+  {
+    "name": "Executive Fellow",
+    "slug": "executive-fellow",
+    "price": {
+      "amount": 15000,
+      "currency": "PKR",
+      "period": "monthly"
+    },
+    "description": "For senior leadership and C-suite executives seeking high-level economic discourse.",
+    "features": [
+      "Access to Executive Policy Briefings",
+      "Exclusive boardroom roundtables",
+      "Concierge networking services",
+      "Invitations to closed-door summits"
+    ],
+    "category": "Executive",
+    "active": true
+  },
+  {
+    "name": "Lifetime Member",
+    "slug": "lifetime-member",
+    "price": {
+      "amount": 500000,
+      "currency": "PKR",
+      "period": "one-time"
+    },
+    "description": "A prestigious commitment to the Economic Club Karachi with lifelong benefits.",
+    "features": [
+      "All Executive Fellow benefits for life",
+      "Permanent seat at the annual summit",
+      "Legacy recognition in club hall",
+      "Priority advisory role in club committees"
+    ],
+    "category": "Individual",
+    "active": true
+  },
+  {
+    "name": "Non-Resident Member",
+    "slug": "non-resident-member",
+    "price": {
+      "amount": 5000,
+      "currency": "PKR",
+      "period": "monthly"
+    },
+    "description": "For professionals residing outside Karachi who want to stay connected to the economic pulse.",
+    "features": [
+      "Virtual access to all sessions",
+      "Digital research publications",
+      "Online networking community",
+      "Bi-annual visit guest passes"
+    ],
+    "category": "Remote",
+    "active": true
+  }
+]

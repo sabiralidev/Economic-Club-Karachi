@@ -1,0 +1,46 @@
+[
+  {
+    "name": "Ahmed Khan",
+    "email": "ahmed.khan@example.com",
+    "purpose": "membership",
+    "phone": "+923001234567",
+    "message": "I am interested in joining the Economic Club Karachi as a corporate member. Please provide details on the application process.",
+    "consent": true
+  },
+  {
+    "name": "Sarah Malik",
+    "email": "sarah.m@fintech-solutions.pk",
+    "purpose": "partnership",
+    "message": "We would like to explore partnership opportunities for the upcoming Tech & Finance Roundtable.",
+    "consent": true
+  },
+  {
+    "name": "Zain Ali",
+    "email": "zain.ali@univ.edu.pk",
+    "purpose": "general",
+    "message": "I have a question regarding the public access to your monthly economic reports.",
+    "consent": true
+  },
+  {
+    "name": "Bilal Siddiqui",
+    "email": "bilal.s@textile-export.com",
+    "purpose": "services",
+    "phone": "+922134567890",
+    "message": "Interested in macroeconomic consulting for our export business strategy.",
+    "consent": true
+  },
+  {
+    "name": "Mariam Yusuf",
+    "email": "mariam.y@ngo-connect.org",
+    "purpose": "general",
+    "message": "Can you provide more information about your Youth Economic Forum?",
+    "consent": true
+  },
+  {
+    "name": "Farhan Ahmed",
+    "email": "farhan.a@investment-group.pk",
+    "purpose": "partnership",
+    "message": "We are interested in sponsoring the Annual Economic Summit 2026.",
+    "consent": true
+  }
+]

@@ -1,0 +1,102 @@
+[
+  {
+    "title": "Corporate Leadership Summit 2025",
+    "slug": "corporate-leadership-summit-2025",
+    "description": "Highlights from our annual gathering of industry titans and policy experts.",
+    "category": "Events",
+    "images": [
+      {
+        "src": "/images/gallery/summit-1.jpg",
+        "alt": "Keynote speaker at the summit",
+        "caption": "Opening ceremony keynote address."
+      },
+      {
+        "src": "/images/gallery/summit-2.jpg",
+        "alt": "Panel discussion on economic reforms",
+        "caption": "Experts discussing the roadmap for 2026."
+      }
+    ],
+    "published": true,
+    "archived": false,
+    "seo": {
+      "title": "Gallery: Leadership Summit 2025",
+      "description": "Photos from the ECK Corporate Leadership Summit."
+    }
+  },
+  {
+    "title": "Youth Economic Forum Karachi",
+    "slug": "youth-economic-forum-karachi",
+    "description": "Engaging the next generation of economists and entrepreneurs.",
+    "category": "Community",
+    "images": [
+      {
+        "src": "/images/gallery/youth-1.jpg",
+        "alt": "Workshop session with students",
+        "caption": "Empowering youth through economic literacy."
+      }
+    ],
+    "published": true,
+    "archived": false,
+    "seo": {
+      "title": "Gallery: Youth Economic Forum",
+      "description": "Empowering students through economic literacy in Karachi."
+    }
+  },
+  {
+    "title": "FinTech Innovation Expo 2026",
+    "slug": "fintech-innovation-expo-2026",
+    "description": "Showcasing the latest digital financial tools and startups.",
+    "category": "Technology",
+    "images": [
+      {
+        "src": "/images/gallery/expo-1.jpg",
+        "alt": "Startup pitches at the expo",
+        "caption": "Local startups presenting their solutions."
+      }
+    ],
+    "published": true,
+    "archived": false,
+    "seo": {
+      "title": "Gallery: FinTech Expo 2026",
+      "description": "Digital innovation and financial technology startups in Pakistan."
+    }
+  },
+  {
+    "title": "Green Karachi Initiative Launch",
+    "slug": "green-karachi-initiative-launch",
+    "description": "Photos from the tree plantation and urban sustainability drive.",
+    "category": "Social",
+    "images": [
+      {
+        "src": "/images/gallery/green-1.jpg",
+        "alt": "Volunteers planting trees",
+        "caption": "Community effort for a greener city."
+      }
+    ],
+    "published": true,
+    "archived": false,
+    "seo": {
+      "title": "Gallery: Green Karachi Initiative",
+      "description": "Urban sustainability and community tree plantation drive."
+    }
+  },
+  {
+    "title": "ECK Members Dinner at Beach Luxury",
+    "slug": "eck-members-dinner-beach-luxury",
+    "description": "An evening of networking and economic discourse.",
+    "category": "Networking",
+    "images": [
+      {
+        "src": "/images/gallery/dinner-1.jpg",
+        "alt": "Members networking",
+        "caption": "Connecting industry leaders."
+      }
+    ],
+    "published": true,
+    "archived": false,
+    "seo": {
+      "title": "Gallery: Members Networking Dinner",
+      "description": "Exclusive networking dinner for Economic Club Karachi members."
+    }
+  }
+]
