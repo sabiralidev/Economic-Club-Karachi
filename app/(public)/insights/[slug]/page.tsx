@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { cache } from "react";
 import { Breadcrumbs } from "@/components/public/breadcrumbs";
 import { getArticleBySlug, listArticles, type ArticleSummary } from "@/lib/content/database";
 import { getServerEnvironment } from "@/lib/env";
@@ -8,9 +9,7 @@ import { pageMetadata } from "@/lib/seo";
 
 type InsightPageProps = { params: Promise<{ slug: string }> };
 
-async function loadArticle(slug: string) {
-  return getArticleBySlug(slug);
-}
+const loadArticle = cache(async (slug: string) => getArticleBySlug(slug));
 
 export async function generateMetadata({ params }: InsightPageProps) {
   const { slug } = await params;
