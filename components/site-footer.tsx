@@ -7,8 +7,7 @@ export function SiteFooter() {
       <div className="mx-auto grid max-w-content gap-10 px-5 py-14 sm:px-8 md:grid-cols-[1.4fr_1fr_1fr] md:py-16">
         <div>
           <div className="flex items-center gap-3">
-            <BrandMark />
-            <p className="font-semibold tracking-wide">Economic Club Karachi</p>
+            <BrandMark className="h-24 w-24" />
           </div>
           <p className="mt-5 max-w-sm text-sm leading-6 text-white/70">
             ECK&apos;s public profile describes it as a growing welfare organization. This site is a place to learn more and start a conversation.

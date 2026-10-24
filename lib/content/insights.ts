@@ -2,6 +2,7 @@ export type InsightDraft = {
   slug: string;
   title: string;
   summary: string;
+  category: "Community" | "Dialogue";
   image: string;
   imageAlt: string;
   paragraphs: string[];
@@ -12,6 +13,7 @@ export const insightDrafts: InsightDraft[] = [
     slug: "questions-for-a-changing-city",
     title: "Questions for a changing city",
     summary: "A proposed reflection on listening, local context and the questions that can help a community think about change.",
+    category: "Community",
     image: "/images/karachi-business.jpg",
     imageAlt: "Modern business buildings in a city",
     paragraphs: [
@@ -24,6 +26,7 @@ export const insightDrafts: InsightDraft[] = [
     slug: "making-room-for-useful-dialogue",
     title: "Making room for useful dialogue",
     summary: "A draft perspective on how careful conversation can help people surface questions before proposing solutions.",
+    category: "Dialogue",
     image: "/images/ideas-workspace.jpg",
     imageAlt: "A bright workspace prepared for writing and discussion",
     paragraphs: [

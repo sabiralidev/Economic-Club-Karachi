@@ -5,7 +5,7 @@ import { BrandMark } from "@/components/brand-mark";
 describe("BrandMark", () => {
   it("renders as a decorative image", () => {
     const { container } = render(<BrandMark />);
-    expect(container.querySelector("img")).toHaveAttribute("src", "/eck-mark.svg");
+    expect(container.querySelector("img")).toHaveAttribute("src", expect.stringContaining("url=%2FLogo.jpg"));
     expect(container.querySelector("img")).toHaveAttribute("aria-hidden", "true");
     expect(screen.queryByRole("img")).not.toBeInTheDocument();
   });

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, type ReactNode } from "react";
+import { usePathname } from "next/navigation";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
@@ -9,18 +10,24 @@ gsap.registerPlugin(ScrollTrigger);
 type ScrollRevealProps = {
   children: ReactNode;
   className?: string;
+  animateSections?: boolean;
 };
 
-export function ScrollReveal({ children, className }: ScrollRevealProps) {
+export function ScrollReveal({ children, className, animateSections = false }: ScrollRevealProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const pathname = usePathname();
 
   useEffect(() => {
     const container = containerRef.current;
-    if (!container) return;
+    if (!container || (animateSections && pathname === "/")) return;
 
     const media = gsap.matchMedia();
     media.add("(prefers-reduced-motion: no-preference)", () => {
-      gsap.utils.toArray<HTMLElement>("[data-reveal]", container).forEach((element, index) => {
+      const elements = animateSections
+        ? Array.from(container.querySelectorAll<HTMLElement>(":scope > section, :scope > article, :scope > header"))
+        : gsap.utils.toArray<HTMLElement>("[data-reveal]", container);
+
+      elements.forEach((element, index) => {
         gsap.from(element, {
           opacity: 0,
           y: 20,
@@ -37,7 +44,7 @@ export function ScrollReveal({ children, className }: ScrollRevealProps) {
     });
 
     return () => media.revert();
-  }, []);
+  }, [animateSections, pathname]);
 
   return (
     <div className={className} ref={containerRef}>
