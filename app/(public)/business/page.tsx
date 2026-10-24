@@ -1,29 +1,28 @@
 import Link from "next/link";
+import { InquiryForm } from "@/components/home/inquiry-form";
+import { FaqAccordion } from "@/components/public/faq-accordion";
+import { PageHero } from "@/components/public/page-hero";
+import { EmptyState } from "@/components/public/empty-state";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata = { title: "Business and Entrepreneurship" };
+export const metadata = pageMetadata({
+  title: "Business and Entrepreneurship",
+  description: "Explore discussion prompts around business and entrepreneurship, and ask ECK about its current work.",
+  path: "/business",
+});
 
 export default function BusinessPage() {
   return (
-    <section className="bg-brand-paper py-16 sm:py-24">
-      <div className="mx-auto max-w-content px-5 sm:px-8">
-        <p className="mb-4 text-xs font-bold uppercase tracking-[0.18em] text-[#0e716b]">Business & dialogue</p>
-        <h1 className="font-display max-w-3xl text-4xl leading-tight text-brand-purple sm:text-6xl">Bring a question worth discussing.</h1>
-        <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_0.8fr] lg:gap-20">
-          <div className="space-y-5 text-base leading-7 text-brand-ink/75">
-            <p>Economic Club Karachi&apos;s confirmed services, business programmes and participation model have not yet been provided.</p>
-            <p>This page is a starting point for people and organizations who want to ask ECK about its current work, propose a discussion, or explore whether a collaboration may be appropriate.</p>
-          </div>
-          <div className="border-t-2 border-brand-purple/15 bg-white p-6 sm:p-8">
-            <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#0e716b]">For discussion</p>
-            <ul className="mt-4 space-y-3 text-sm leading-6 text-brand-ink/70">
-              <li>What questions are important to your organization?</li>
-              <li>What would you like to learn from a local conversation?</li>
-              <li>Is there an idea you would like ECK to consider?</li>
-            </ul>
-            <Link className="mt-6 inline-flex min-h-12 items-center justify-center rounded-md bg-brand-purple px-5 py-3 text-sm font-bold text-white transition hover:bg-brand-purple/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#0e716b]" href="/contact?topic=partnership#inquiry">Start a conversation</Link>
-          </div>
-        </div>
-      </div>
-    </section>
+    <>
+      <PageHero eyebrow="Business & entrepreneurship" title="Bring a question worth discussing." description="A place to explore possible connections between business, entrepreneurship, and community life, without assuming a confirmed ECK programme." />
+      <section className="bg-brand-paper py-14 sm:py-18"><div className="mx-auto grid max-w-content gap-8 px-5 sm:px-8 md:grid-cols-2 md:gap-16"><div><p className="text-xs font-bold uppercase tracking-[0.18em] text-[#0e716b]">Introduction</p><h2 className="font-display mt-4 text-3xl text-brand-purple sm:text-4xl">A local ecosystem has many voices.</h2></div><p className="text-base leading-7 text-brand-ink/70">ECK&apos;s confirmed business activities and entrepreneurship support have not been provided. This page presents questions people may bring to the organization, not a list of ECK offers.</p></div></section>
+      <section className="bg-white py-14 sm:py-18"><div className="mx-auto max-w-content px-5 sm:px-8"><p className="text-xs font-bold uppercase tracking-[0.18em] text-[#0e716b]">Business ecosystem · discussion framework</p><h2 className="font-display mt-4 max-w-2xl text-3xl text-brand-purple sm:text-4xl">Start with what people need to understand.</h2><div className="mt-7 grid gap-4 md:grid-cols-3">{[{ title: "Questions", text: "What changes or constraints are people navigating?" }, { title: "Perspectives", text: "Whose experience would make the conversation more complete?" }, { title: "Possibilities", text: "What small next step could be explored, if participants agree?" }].map((item) => <article className="border-t-2 border-brand-purple/15 bg-brand-paper p-6" key={item.title}><h3 className="text-lg font-semibold text-brand-purple">{item.title}</h3><p className="mt-3 text-sm leading-6 text-brand-ink/70">{item.text}</p></article>)}</div></div></section>
+      <section className="bg-brand-purple py-14 text-white sm:py-18"><div className="mx-auto grid max-w-content gap-8 px-5 sm:px-8 md:grid-cols-2 md:gap-16"><div><p className="text-xs font-bold uppercase tracking-[0.18em] text-brand-teal">Entrepreneurship</p><h2 className="font-display mt-4 text-3xl sm:text-4xl">Useful information before assumptions.</h2></div><p className="text-base leading-7 text-white/75">No business advice, funding, mentorship, accelerator, or entrepreneurship programme has been verified for ECK. Visitors can ask about current activities or suggest an educational topic for the organization to consider.</p></div></section>
+      <section className="bg-brand-paper py-14 sm:py-18"><div className="mx-auto max-w-content px-5 sm:px-8"><p className="text-xs font-bold uppercase tracking-[0.18em] text-[#0e716b]">Possible collaboration questions · illustrative</p><div className="mt-6 grid gap-4 md:grid-cols-2"><article className="border border-brand-purple/10 bg-white p-6"><h2 className="text-lg font-semibold text-brand-purple">Shared learning</h2><p className="mt-3 text-sm leading-6 text-brand-ink/70">Could a conversation help people compare experiences around a topic? This is an example question, not a scheduled event.</p></article><article className="border border-brand-purple/10 bg-white p-6"><h2 className="text-lg font-semibold text-brand-purple">Community perspective</h2><p className="mt-3 text-sm leading-6 text-brand-ink/70">Could a local viewpoint inform how an issue is understood? Any involvement requires ECK and participant agreement.</p></article></div></div></section>
+      <section className="bg-white py-14 sm:py-18"><div className="mx-auto grid max-w-content gap-8 px-5 sm:px-8 md:grid-cols-2 md:items-center md:gap-16"><div><p className="text-xs font-bold uppercase tracking-[0.18em] text-[#0e716b]">Resources</p><h2 className="font-display mt-4 text-3xl text-brand-purple">Verified resources will be shared here.</h2><p className="mt-4 text-sm leading-6 text-brand-ink/65">No ECK reports, guides, or educational resources have been supplied for publication.</p></div><EmptyState title="No resources published yet" description="Ask ECK whether it can recommend information related to your topic." href="/contact?topic=general#inquiry" linkLabel="Ask a question" /></div></section>
+      <section className="bg-brand-paper py-14 sm:py-18"><div className="mx-auto max-w-content px-5 sm:px-8"><p className="text-xs font-bold uppercase tracking-[0.18em] text-[#0e716b]">Featured initiatives</p><h2 className="font-display mt-4 text-3xl text-brand-purple sm:text-4xl">No initiatives are being represented as current.</h2><div className="mt-6"><EmptyState title="Initiative details are pending verification" description="ECK can share approved programme descriptions when available." /></div></div></section>
+      <div className="mx-auto max-w-content px-5 py-14 sm:px-8 sm:py-18"><FaqAccordion items={[{ question: "Does ECK offer business advice or funding?", answer: "No such service, funding offer, or policy has been verified. Please contact ECK for current information." }, { question: "Can I propose a business or entrepreneurship discussion?", answer: "Yes. You can send an idea for ECK to review; submission does not guarantee that an activity will be arranged." }]} /></div>
+      <section className="bg-white py-14 sm:py-18"><div className="mx-auto grid max-w-content gap-8 px-5 sm:px-8 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16"><div><p className="text-xs font-bold uppercase tracking-[0.18em] text-[#0e716b]">Engage with ECK</p><h2 className="font-display mt-4 text-3xl text-brand-purple">Share a topic or question.</h2><Link className="editorial-link mt-5 inline-flex text-sm font-bold text-brand-purple underline" href="/contact?topic=partnership#inquiry">Partnership enquiry <span aria-hidden="true" className="ml-2">↗</span></Link></div><InquiryForm defaultPurpose="partnership" /></div></section>
+    </>
   );
 }

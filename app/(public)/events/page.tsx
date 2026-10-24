@@ -1,34 +1,25 @@
-import Image from "next/image";
 import Link from "next/link";
+import { InquiryForm } from "@/components/home/inquiry-form";
+import { EventBrowser } from "@/components/events/event-browser";
+import { FaqAccordion } from "@/components/public/faq-accordion";
+import { PageHero } from "@/components/public/page-hero";
+import { eckEvents } from "@/lib/content/events";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata = { title: "Events and Activities" };
+export const metadata = pageMetadata({
+  title: "Events and Activities",
+  description: "View verified Economic Club Karachi events and express interest in future activities.",
+  path: "/events",
+});
 
 export default function EventsPage() {
-  const activities = [
-    { slug: "community-conversations", title: "Community conversations", image: "/images/community-dialogue.jpg", alt: "People in conversation in a shared workspace", description: "An illustrative format for a possible community discussion. No event has been announced." },
-    { slug: "business-gatherings", title: "Business gatherings", image: "/images/karachi-business.jpg", alt: "Modern business buildings in a city", description: "An illustrative format for future planning. Dates, locations and availability are not confirmed." },
-  ];
-
   return (
-    <section className="bg-brand-paper py-16 sm:py-24">
-      <div className="mx-auto max-w-content px-5 sm:px-8">
-        <p className="mb-4 text-xs font-bold uppercase tracking-[0.18em] text-[#0e716b]">Events & activities · illustrative</p>
-        <h1 className="font-display max-w-3xl text-4xl leading-tight text-brand-purple sm:text-6xl">A window into what brings people together.</h1>
-        <p className="mt-5 max-w-2xl text-base leading-7 text-brand-ink/70">The examples below show how activity information may be presented. They are not announcements, and no dates or registration details have been confirmed.</p>
-        <div className="mt-12 grid gap-6 md:grid-cols-2">
-          {activities.map((activity) => (
-            <article className="home-card overflow-hidden border border-brand-purple/10 bg-white" key={activity.slug}>
-              <div className="relative aspect-[16/9]"><Image alt={activity.alt} className="object-cover" fill loading="lazy" sizes="(max-width: 768px) 100vw, 50vw" src={activity.image} /></div>
-              <div className="p-6 sm:p-8">
-                <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#0e716b]">Illustrative format · not scheduled</p>
-                <h2 className="mt-3 text-xl font-semibold text-brand-purple">{activity.title}</h2>
-                <p className="mt-3 text-sm leading-6 text-brand-ink/70">{activity.description}</p>
-                <Link className="editorial-link mt-5 inline-flex text-sm font-bold text-brand-purple underline" href={`/events/${activity.slug}`}>View activity format <span aria-hidden="true" className="ml-2">↗</span></Link>
-              </div>
-            </article>
-          ))}
-        </div>
-      </div>
-    </section>
+    <>
+      <PageHero eyebrow="Events & activities" title="Gatherings, when confirmed." description="Find verified event details here. Dates, venues, and registration links will only appear after ECK confirms them." />
+      <section className="bg-brand-paper py-14 sm:py-18"><div className="mx-auto max-w-content px-5 sm:px-8"><EventBrowser events={eckEvents} /></div></section>
+      <section className="bg-white py-14 sm:py-18"><div className="mx-auto grid max-w-content gap-8 px-5 sm:px-8 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16"><div><p className="text-xs font-bold uppercase tracking-[0.18em] text-[#0e716b]">Event interest</p><h2 className="font-display mt-4 text-3xl text-brand-purple sm:text-4xl">Ask about future activities.</h2><p className="mt-4 text-sm leading-6 text-brand-ink/65">This form records an enquiry only; it is not event registration.</p></div><InquiryForm defaultPurpose="general" defaultMessage="I would like to hear about confirmed ECK events and activities." /></div></section>
+      <section className="bg-brand-purple py-12 text-white sm:py-14"><div className="mx-auto max-w-content px-5 sm:px-8"><p className="text-xs font-bold uppercase tracking-[0.18em] text-brand-teal">Related</p><div className="mt-4 flex flex-wrap gap-x-8 gap-y-3 text-sm font-semibold"><Link className="underline underline-offset-4" href="/community">Community initiatives</Link><Link className="underline underline-offset-4" href="/insights">News & insights</Link><Link className="underline underline-offset-4" href="/gallery">Gallery</Link></div></div></section>
+      <div className="mx-auto max-w-content px-5 py-14 sm:px-8 sm:py-18"><FaqAccordion items={[{ question: "Are any events currently announced?", answer: "No verified upcoming events have been supplied for publication." }, { question: "Can I register through this page?", answer: "There are no confirmed events or registration links yet. The interest form is not registration." }, { question: "Will past events be listed?", answer: "Past events will appear after ECK verifies titles, dates, and any associated imagery." }]} /></div>
+    </>
   );
 }

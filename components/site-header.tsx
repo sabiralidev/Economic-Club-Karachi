@@ -7,9 +7,12 @@ import { BrandMark } from "@/components/brand-mark";
 const navigation = [
   { label: "About", href: "/about" },
   { label: "Services", href: "/services" },
+  { label: "Business", href: "/business" },
   { label: "Events", href: "/events" },
   { label: "Community", href: "/community" },
+  { label: "Gallery", href: "/gallery" },
   { label: "Insights", href: "/insights" },
+  { label: "Membership", href: "/membership" },
 ];
 
 export function SiteHeader() {
@@ -31,20 +34,12 @@ export function SiteHeader() {
             href="/"
             onClick={() => setMenuOpen(false)}
           >
-            <BrandMark className="h-11 w-11" />
-            <span className="leading-tight">
-              <span className="block text-sm font-bold uppercase tracking-[0.12em] text-brand-purple">
-                Economic Club
-              </span>
-              <span className="mt-0.5 block text-[0.68rem] font-semibold tracking-[0.2em] text-brand-ink/65">
-                KARACHI
-              </span>
-            </span>
+            <BrandMark className="h-20 w-20" />
           </Link>
           <button
             aria-controls="primary-navigation"
             aria-expanded={menuOpen}
-            className="rounded-md border border-brand-purple/15 px-4 py-2 text-sm font-semibold text-brand-purple transition hover:border-brand-purple focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0e716b] lg:hidden"
+            className="rounded-md border border-brand-purple/15 px-4 py-2 text-sm font-semibold text-brand-purple transition hover:border-brand-purple focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0e716b] xl:hidden"
             onClick={() => setMenuOpen((open) => !open)}
             type="button"
           >
@@ -52,12 +47,12 @@ export function SiteHeader() {
           </button>
           <nav
             aria-label="Main navigation"
-            className={`${menuOpen ? "grid" : "hidden"} order-3 w-full gap-1 border-t border-brand-purple/10 pt-3 lg:order-none lg:flex lg:w-auto lg:items-center lg:gap-7 lg:border-0 lg:pt-0`}
+            className={`${menuOpen ? "grid" : "hidden"} order-3 w-full gap-1 border-t border-brand-purple/10 pt-3 xl:order-none xl:flex xl:w-auto xl:items-center xl:gap-4 xl:border-0 xl:pt-0`}
             id="primary-navigation"
           >
             {navigation.map((item) => (
               <Link
-                className="rounded-sm py-2 text-sm font-medium text-brand-ink/75 transition-colors hover:text-brand-purple focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0e716b] lg:py-1"
+                className="rounded-sm py-2 text-sm font-medium text-brand-ink/75 transition-colors hover:text-brand-purple focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0e716b] xl:py-1"
                 href={item.href}
                 key={item.href}
                 onClick={() => setMenuOpen(false)}
@@ -66,7 +61,7 @@ export function SiteHeader() {
               </Link>
             ))}
             <Link
-              className="mt-1 inline-flex w-fit items-center justify-center rounded-md bg-brand-purple px-5 py-3 text-sm font-semibold text-white transition hover:bg-brand-purple/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0e716b] lg:mt-0"
+              className="mt-1 inline-flex w-fit items-center justify-center rounded-md bg-brand-purple px-5 py-3 text-sm font-semibold text-white transition hover:bg-brand-purple/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0e716b] xl:mt-0"
               href="/contact"
               onClick={() => setMenuOpen(false)}
             >

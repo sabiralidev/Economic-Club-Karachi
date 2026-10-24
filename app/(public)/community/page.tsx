@@ -1,21 +1,26 @@
 import Link from "next/link";
+import { FaqAccordion } from "@/components/public/faq-accordion";
+import { PageHero } from "@/components/public/page-hero";
+import { EmptyState } from "@/components/public/empty-state";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata = { title: "Community and Initiatives" };
+export const metadata = pageMetadata({
+  title: "Community and Initiatives",
+  description: "Learn what is confirmed about ECK's community work and ask about current participation.",
+  path: "/community",
+});
 
 export default function CommunityPage() {
   return (
-    <section className="bg-white py-16 sm:py-24">
-      <div className="mx-auto grid max-w-content gap-10 px-5 sm:px-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-start lg:gap-20">
-        <div>
-          <p className="mb-4 text-xs font-bold uppercase tracking-[0.18em] text-[#0e716b]">Community</p>
-          <h1 className="font-display max-w-xl text-4xl leading-tight text-brand-purple sm:text-6xl">Community work starts by listening.</h1>
-        </div>
-        <div className="space-y-5 text-base leading-7 text-brand-ink/75">
-          <p>ECK&apos;s public profile describes it as a growing welfare organization. Details about its current community initiatives, partners and participation options have not yet been verified.</p>
-          <p>This page will share approved information when it is available. In the meantime, community members and organizations can contact ECK to ask about current work or suggest a conversation.</p>
-          <Link className="editorial-link inline-flex text-sm font-bold text-brand-purple underline" href="/contact?topic=partnership#inquiry">Share an idea <span aria-hidden="true" className="ml-2">↗</span></Link>
-        </div>
-      </div>
-    </section>
+    <>
+      <PageHero eyebrow="Community & initiatives" title="Community work starts by listening." description="ECK describes itself as a growing welfare organization. Its current initiatives and participation opportunities are awaiting confirmation." />
+      <section className="bg-brand-paper py-14 sm:py-18"><div className="mx-auto grid max-w-content gap-8 px-5 sm:px-8 md:grid-cols-2 md:gap-16"><div><p className="text-xs font-bold uppercase tracking-[0.18em] text-[#0e716b]">Community introduction</p><h2 className="font-display mt-4 text-3xl text-brand-purple sm:text-4xl">Local context matters.</h2></div><p className="text-base leading-7 text-brand-ink/70">ECK&apos;s public profile describes it as a growing welfare organization. The organization has not supplied verified descriptions of its communities, initiative areas, or current projects for publication here.</p></div></section>
+      <section className="bg-white py-14 sm:py-18"><div className="mx-auto max-w-content px-5 sm:px-8"><p className="text-xs font-bold uppercase tracking-[0.18em] text-[#0e716b]">Purpose & values · for discussion</p><div className="mt-6 grid gap-5 md:grid-cols-3">{[{ title: "Listen first", text: "A proposed principle: understand needs and context before suggesting action." }, { title: "Work with consent", text: "A proposed principle: make participation voluntary and expectations clear." }, { title: "Share responsibly", text: "A proposed principle: publish stories or images only with appropriate permission." }].map((item) => <article className="border-t-2 border-brand-teal bg-brand-paper p-6" key={item.title}><h2 className="text-lg font-semibold text-brand-purple">{item.title}</h2><p className="mt-3 text-sm leading-6 text-brand-ink/70">{item.text}</p></article>)}</div><p className="mt-5 text-xs text-brand-ink/55">These are editorial prompts, not adopted ECK policies.</p></div></section>
+      <section className="bg-brand-purple py-14 text-white sm:py-18"><div className="mx-auto max-w-content px-5 sm:px-8"><p className="text-xs font-bold uppercase tracking-[0.18em] text-brand-teal">Potential initiative categories · proposed</p><h2 className="font-display mt-4 text-3xl sm:text-4xl">The work should be described by the people doing it.</h2><div className="mt-7 grid gap-4 sm:grid-cols-3">{["Community wellbeing", "Learning and exchange", "Local participation"].map((category) => <p className="border-t border-white/25 pt-4 text-base font-semibold text-white/85" key={category}>{category}</p>)}</div><p className="mt-5 text-sm text-white/60">Category labels are placeholders for ECK review, not verified active initiatives.</p></div></section>
+      <section className="bg-brand-paper py-14 sm:py-18"><div className="mx-auto max-w-content px-5 sm:px-8"><p className="text-xs font-bold uppercase tracking-[0.18em] text-[#0e716b]">Featured initiatives</p><h2 className="font-display mt-4 text-3xl text-brand-purple sm:text-4xl">No verified initiative stories are available yet.</h2><div className="mt-6"><EmptyState title="Initiatives pending confirmation" description="ECK can provide approved descriptions, dates, and participation details when ready." /></div></div></section>
+      <section className="bg-white py-14 sm:py-18"><div className="mx-auto grid max-w-content gap-8 px-5 sm:px-8 md:grid-cols-2 md:items-center md:gap-16"><div><p className="text-xs font-bold uppercase tracking-[0.18em] text-[#0e716b]">Participation</p><h2 className="font-display mt-4 text-3xl text-brand-purple">Ask before making a commitment.</h2><p className="mt-4 text-sm leading-6 text-brand-ink/65">Volunteer roles, eligibility, schedules, and safeguarding requirements have not been supplied.</p><Link className="editorial-link mt-5 inline-flex text-sm font-bold text-brand-purple underline" href="/contact?topic=general#inquiry">Ask about participation <span aria-hidden="true" className="ml-2">↗</span></Link></div><EmptyState title="No community stories published" description="Stories and images will be added only when verified and appropriately approved." /></div></section>
+      <div className="mx-auto max-w-content px-5 py-14 sm:px-8 sm:py-18"><FaqAccordion items={[{ question: "How can I participate?", answer: "No current participation process has been confirmed. Contact ECK to ask about available opportunities." }, { question: "Can I suggest an initiative?", answer: "You can submit an idea for ECK's consideration. This does not imply a commitment to run it." }]} /></div>
+      <section className="bg-brand-purple py-14 text-white sm:py-16"><div className="mx-auto flex max-w-content flex-col gap-6 px-5 sm:px-8 md:flex-row md:items-center md:justify-between"><div><p className="text-xs font-bold uppercase tracking-[0.18em] text-brand-teal">Contact ECK</p><h2 className="font-display mt-3 text-3xl">Share a question or idea.</h2></div><Link className="inline-flex min-h-12 w-fit items-center justify-center rounded-md bg-brand-teal px-6 py-3 text-sm font-bold text-brand-purple" href="/contact?topic=general#inquiry">Get in touch</Link></div></section>
+    </>
   );
 }
