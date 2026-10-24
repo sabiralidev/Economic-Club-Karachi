@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { DM_Sans, Playfair_Display } from "next/font/google";
+import { RouteProgress } from "@/components/route-progress";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
+import { SiteLoader } from "@/components/site-loader";
 import { getServerEnvironment } from "@/lib/env";
 import "./globals.css";
 
@@ -32,6 +34,8 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         >
           Skip to content
         </a>
+        <SiteLoader />
+        <RouteProgress />
         <SiteHeader />
         <main className="flex-1" id="main-content">
           {children}
