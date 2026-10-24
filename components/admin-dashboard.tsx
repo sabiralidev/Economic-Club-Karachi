@@ -169,7 +169,7 @@ export function AdminDashboard({ email, role }: { email: string; role: "admin" |
     setPending(true);
     try {
       await parseResponse(await fetch("/api/admin/session", { method: "DELETE" }));
-      window.location.assign("/admin/login");
+      window.location.assign("/admin");
     } catch (error) {
       setNotice(errorMessage(error));
       setPending(false);
