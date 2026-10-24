@@ -5,7 +5,11 @@ import { FormField } from "@/components/ui/form-field";
 import { gsap } from "gsap";
 
 type AdminTab = "services" | "events" | "articles" | "gallery" | "settings";
-type AdminRecord = Record<string, any>;
+type AdminRecord = Record<string, unknown> & {
+  seo?: Record<string, unknown>;
+  contact?: Record<string, unknown>;
+  socialLinks?: Record<string, unknown>;
+};
 
 interface AdminRecordFormProps {
   tab: AdminTab;
@@ -45,17 +49,25 @@ export function AdminRecordForm({
         }
       );
     }
+
+    function isRecord(value: unknown): value is Record<string, unknown> {
+      return typeof value === "object" && value !== null && !Array.isArray(value);
+    }
+
+    function textValue(value: unknown): string | number {
+      return typeof value === "string" || typeof value === "number" ? value : "";
+    }
   }, [tab]);
 
-  const handleChange = (key: string, value: any) => {
+  const handleChange = (key: string, value: unknown) => {
     setFormData((prev) => ({ ...prev, [key]: value }));
   };
 
-  const handleNestedChange = (parentKey: string, key: string, value: any) => {
+  const handleNestedChange = (parentKey: "seo" | "contact" | "socialLinks", key: string, value: unknown) => {
     setFormData((prev) => ({
       ...prev,
       [parentKey]: {
-        ...(prev[parentKey] || {}),
+        ...(isRecord(prev[parentKey]) ? prev[parentKey] : {}),
         [key]: value,
       },
     }));
@@ -77,7 +89,7 @@ export function AdminRecordForm({
         <input
           id={key}
           type={type}
-          value={formData[key] || ""}
+          value={textValue(formData[key])}
           onChange={(e) => handleChange(key, e.target.value)}
           placeholder={placeholder}
           className="min-h-11 w-full border border-brand-purple/20 bg-white px-3 text-sm transition-all focus:border-brand-teal focus:outline-none focus:ring-1 focus:ring-brand-teal"
@@ -91,7 +103,7 @@ export function AdminRecordForm({
       <FormField id={key} label={label}>
         <textarea
           id={key}
-          value={formData[key] || ""}
+          value={textValue(formData[key])}
           onChange={(e) => handleChange(key, e.target.value)}
           placeholder={placeholder}
           rows={4}
@@ -121,7 +133,7 @@ export function AdminRecordForm({
       <FormField id={key} label={label}>
         <select
           id={key}
-          value={formData[key] || ""}
+          value={textValue(formData[key])}
           onChange={(e) => handleChange(key, e.target.value)}
           className="min-h-11 w-full border border-brand-purple/20 bg-white px-3 text-sm transition-all focus:border-brand-teal focus:outline-none focus:ring-1 focus:ring-brand-teal"
         >
@@ -142,7 +154,7 @@ export function AdminRecordForm({
         <FormField id="seo-title" label="Meta Title">
           <input
             id="seo-title"
-            value={formData.seo?.title || ""}
+            value={textValue(formData.seo?.title)}
             onChange={(e) => handleNestedChange("seo", "title", e.target.value)}
             className="min-h-11 w-full border border-brand-purple/20 bg-white px-3 text-sm"
           />
@@ -150,7 +162,7 @@ export function AdminRecordForm({
         <FormField id="seo-canonical" label="Canonical URL">
           <input
             id="seo-canonical"
-            value={formData.seo?.canonicalUrl || ""}
+            value={textValue(formData.seo?.canonicalUrl)}
             onChange={(e) => handleNestedChange("seo", "canonicalUrl", e.target.value)}
             className="min-h-11 w-full border border-brand-purple/20 bg-white px-3 text-sm"
           />
@@ -159,7 +171,7 @@ export function AdminRecordForm({
       <FormField id="seo-description" label="Meta Description">
         <textarea
           id="seo-description"
-          value={formData.seo?.description || ""}
+          value={textValue(formData.seo?.description)}
           onChange={(e) => handleNestedChange("seo", "description", e.target.value)}
           rows={2}
           className="w-full border border-brand-purple/20 bg-white p-3 text-sm"
@@ -258,7 +270,7 @@ export function AdminRecordForm({
                   try {
                     const parsed = JSON.parse(e.target.value);
                     if (Array.isArray(parsed)) handleChange("images", parsed);
-                  } catch (err) {
+                  } catch {
                     // Ignore invalid JSON while typing
                   }
                 }}
@@ -285,7 +297,7 @@ export function AdminRecordForm({
                   <input
                     id="contact-email"
                     type="email"
-                    value={formData.contact?.email || ""}
+                    value={textValue(formData.contact?.email)}
                     onChange={(e) => handleNestedChange("contact", "email", e.target.value)}
                     className="min-h-11 w-full border border-brand-purple/20 bg-white px-3 text-sm"
                   />
@@ -293,7 +305,7 @@ export function AdminRecordForm({
                 <FormField id="contact-phone" label="Phone Number">
                   <input
                     id="contact-phone"
-                    value={formData.contact?.phone || ""}
+                    value={textValue(formData.contact?.phone)}
                     onChange={(e) => handleNestedChange("contact", "phone", e.target.value)}
                     className="min-h-11 w-full border border-brand-purple/20 bg-white px-3 text-sm"
                   />
@@ -302,7 +314,7 @@ export function AdminRecordForm({
               <FormField id="contact-address" label="Physical Address">
                 <textarea
                   id="contact-address"
-                  value={formData.contact?.address || ""}
+                  value={textValue(formData.contact?.address)}
                   onChange={(e) => handleNestedChange("contact", "address", e.target.value)}
                   rows={2}
                   className="w-full border border-brand-purple/20 bg-white p-3 text-sm"
@@ -316,7 +328,7 @@ export function AdminRecordForm({
                 <FormField id="social-linkedin" label="LinkedIn URL">
                   <input
                     id="social-linkedin"
-                    value={formData.socialLinks?.linkedin || ""}
+                    value={textValue(formData.socialLinks?.linkedin)}
                     onChange={(e) => handleNestedChange("socialLinks", "linkedin", e.target.value)}
                     className="min-h-11 w-full border border-brand-purple/20 bg-white px-3 text-sm"
                   />
@@ -324,7 +336,7 @@ export function AdminRecordForm({
                 <FormField id="social-instagram" label="Instagram URL">
                   <input
                     id="social-instagram"
-                    value={formData.socialLinks?.instagram || ""}
+                    value={textValue(formData.socialLinks?.instagram)}
                     onChange={(e) => handleNestedChange("socialLinks", "instagram", e.target.value)}
                     className="min-h-11 w-full border border-brand-purple/20 bg-white px-3 text-sm"
                   />
