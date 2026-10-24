@@ -1,7 +1,6 @@
 import "server-only";
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
 import { getServerEnvironment } from "@/lib/env";
 import { connectMongo } from "@/lib/db/mongodb";
 import { AdminUser } from "@/models/admin-user";
@@ -51,12 +50,6 @@ export async function getAdminSession(): Promise<AdminSession | null> {
   const user = await AdminUser.findOne({ _id: userId, status: "active" }).select("_id email role").lean();
   if (!user || (user.role !== "admin" && user.role !== "editor")) return null;
   return { userId: user._id.toString(), email: user.email, role: user.role };
-}
-
-export async function requireAdminSession(): Promise<AdminSession> {
-  const session = await getAdminSession();
-  if (!session) redirect("/admin/login");
-  return session;
 }
 
 export const adminSessionCookie = {
