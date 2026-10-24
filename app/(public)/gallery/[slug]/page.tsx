@@ -1,15 +1,14 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { cache } from "react";
 import { Breadcrumbs } from "@/components/public/breadcrumbs";
 import { getGalleryBySlug } from "@/lib/content/database";
 import { pageMetadata } from "@/lib/seo";
 
 type GalleryDetailProps = { params: Promise<{ slug: string }> };
 
-async function loadGallery(slug: string) {
-  return getGalleryBySlug(slug);
-}
+const loadGallery = cache(async (slug: string) => getGalleryBySlug(slug));
 
 export async function generateMetadata({ params }: GalleryDetailProps) {
   const { slug } = await params;
