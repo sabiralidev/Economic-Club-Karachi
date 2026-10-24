@@ -6,6 +6,7 @@ import { InsightsSection } from "@/components/home/insights-section";
 import { IntroductionSection } from "@/components/home/introduction-section";
 import { MembershipSection } from "@/components/home/membership-section";
 import { ServicesSection } from "@/components/home/services-section";
+import { listArticles, listEvents, listServices } from "@/lib/content/database";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata({
@@ -15,16 +16,21 @@ export const metadata = pageMetadata({
   absoluteTitle: true,
 });
 
-export default function HomePage() {
+export default async function HomePage() {
+  const [services, events, articles] = await Promise.allSettled([
+    listServices({ limit: "3", sort: "newest" }),
+    listEvents({ limit: "2", status: "upcoming", sort: "upcoming" }),
+    listArticles({ limit: "2" }),
+  ]);
   return (
     <>
       <HeroSection />
       <IntroductionSection />
-      <ServicesSection />
+      <ServicesSection services={services.status === "fulfilled" ? services.value.items : []} unavailable={services.status === "rejected"} />
       <ImpactSection />
-      <EventsSection />
+      <EventsSection events={events.status === "fulfilled" ? events.value.items : []} unavailable={events.status === "rejected"} />
       <EngagementSection />
-      <InsightsSection />
+      <InsightsSection articles={articles.status === "fulfilled" ? articles.value.items : []} unavailable={articles.status === "rejected"} />
       <MembershipSection />
     </>
   );

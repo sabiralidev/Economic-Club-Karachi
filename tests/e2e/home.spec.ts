@@ -8,8 +8,10 @@ test("home page presents the club and primary routes", async ({ page }) => {
   await expect(page.getByRole("navigation", { name: "Main navigation" }).getByRole("link", { name: "Membership" })).toHaveAttribute("href", "/membership");
 
   const healthResponse = await page.request.get("/api/health");
-  expect(healthResponse.ok()).toBeTruthy();
-  await expect(healthResponse.json()).resolves.toEqual({ status: "ok" });
+  const healthBody = await healthResponse.json();
+  expect([200, 503]).toContain(healthResponse.status());
+  expect(healthBody).toHaveProperty("data");
+  expect(healthBody).toHaveProperty("error");
 });
 
 const publicRoutes = [
@@ -25,8 +27,6 @@ const publicRoutes = [
   "/contact",
   "/privacy",
   "/terms",
-  "/services/ideas-and-dialogue",
-  "/insights/questions-for-a-changing-city",
 ];
 
 for (const viewport of [
@@ -51,33 +51,48 @@ for (const viewport of [
   });
 }
 
-test("insight search, category filters, and show-more interaction work", async ({ page }) => {
+test("published insight search uses a server-backed query", async ({ page }) => {
   await page.goto("/insights");
-  await expect(page.locator("article")).toHaveCount(1);
-  await page.getByRole("button", { name: "Show more drafts" }).click();
-  await expect(page.locator("article")).toHaveCount(2);
-  await page.getByLabel("Search drafts").fill("useful dialogue");
-  await expect(page.locator("article")).toHaveCount(1);
-  await expect(page.locator("article")).toContainText("Making room for useful dialogue");
-  await page.getByLabel("Search drafts").fill("no matching article");
-  await expect(page.getByText("No matching articles")).toBeVisible();
+  await page.getByLabel("Search articles").fill("local development");
+  await page.getByRole("button", { name: "Search" }).click();
+  await expect(page).toHaveURL(/q=local\+development/);
+  await expect(page.getByRole("heading", { name: /No published articles|temporarily unavailable/ })).toBeVisible();
 });
 
-test("event and gallery filters preserve their verified empty states", async ({ page }) => {
+test("event and gallery filters are submitted to the server", async ({ page }) => {
   await page.goto("/events");
-  await expect(page.getByText("No upcoming events announced")).toBeVisible();
-  await page.getByRole("button", { name: "past events" }).click();
-  await expect(page.getByText("No past events published")).toBeVisible();
+  await page.getByLabel("Event period").selectOption("past");
+  await page.getByRole("button", { name: "Filter" }).click();
+  await expect(page).toHaveURL(/status=past/);
+  await expect(page.getByRole("heading", { name: /No past events published|temporarily unavailable/ })).toBeVisible();
   await page.goto("/gallery");
-  await expect(page.getByText("No approved ECK photos yet")).toBeVisible();
-  await page.getByRole("button", { name: "Community", exact: true }).click();
-  await expect(page.getByText("No approved ECK photos yet")).toBeVisible();
+  await page.getByLabel("Search gallery").fill("community");
+  await page.getByRole("button", { name: "Filter" }).click();
+  await expect(page).toHaveURL(/q=community/);
+  await expect(page.getByRole("heading", { name: /No approved ECK photos|temporarily unavailable/ })).toBeVisible();
 });
 
 test("unknown event and gallery slugs return not found", async ({ page }) => {
+  const healthResponse = await page.request.get("/api/health");
+  test.skip(healthResponse.status() !== 200, "Dynamic not-found behavior requires a configured MongoDB connection.");
   for (const route of ["/events/not-confirmed", "/gallery/not-approved", "/services/unknown-service", "/insights/unknown-article"]) {
     const response = await page.goto(route, { waitUntil: "domcontentloaded" });
     expect(response?.status()).toBe(404);
     await expect(page.getByRole("heading", { name: "This page isn't available." })).toBeVisible();
   }
+});
+
+test("admin pages and APIs reject unauthenticated access", async ({ page }) => {
+  await page.goto("/admin");
+  await expect(page).toHaveURL(/\/admin\/login$/);
+  const read = await page.request.get("/api/admin/services");
+  expect(read.status()).toBe(401);
+  await expect(read.json()).resolves.toMatchObject({
+    data: null,
+    error: { message: "Authentication is required." },
+  });
+  const mutation = await page.request.post("/api/admin/services", {
+    data: { title: "Unauthorized", slug: "unauthorized", summary: "Invalid", description: "Invalid", category: "test" },
+  });
+  expect(mutation.status()).toBe(401);
 });

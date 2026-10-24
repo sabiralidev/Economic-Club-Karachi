@@ -1,53 +1,46 @@
-"use client";
-
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { ContentPagination } from "@/components/public/content-pagination";
 import { EmptyState } from "@/components/public/empty-state";
-import type { ECKEvent, EventCategory, EventStatus } from "@/lib/content/events";
+import type { EventSummary, PageResult, PublicPageQuery } from "@/lib/content/database";
 
 type EventBrowserProps = {
-  events: ECKEvent[];
+  result: PageResult<EventSummary>;
+  query: PublicPageQuery;
+  unavailable?: boolean;
 };
 
-const categoryOptions: { label: string; value: EventCategory | "all" }[] = [
-  { label: "All topics", value: "all" },
-  { label: "Community", value: "community" },
-  { label: "Business", value: "business" },
-];
-
-export function EventBrowser({ events }: EventBrowserProps) {
-  const [status, setStatus] = useState<EventStatus>("upcoming");
-  const [category, setCategory] = useState<EventCategory | "all">("all");
-  const visibleEvents = events.filter((event) => event.status === status && (category === "all" || event.category === category));
-
+export function EventBrowser({ result, query, unavailable = false }: EventBrowserProps) {
   return (
     <div>
-      <div className="flex flex-wrap items-center justify-between gap-5 border-b border-brand-purple/10 pb-5">
-        <div aria-label="Event time period" className="inline-flex rounded-sm border border-brand-purple/15 p-1" role="group">
-          {(["upcoming", "past"] as const).map((item) => (
-            <button aria-pressed={status === item} className={`min-h-10 px-4 text-sm font-semibold capitalize transition ${status === item ? "bg-brand-purple text-white" : "text-brand-ink/65 hover:text-brand-purple"}`} key={item} onClick={() => setStatus(item)} type="button">{item} events</button>
-          ))}
-        </div>
-        <div aria-label="Filter events by proposed topic" className="flex flex-wrap gap-2" role="group">
-          {categoryOptions.map((option) => (
-            <button aria-pressed={category === option.value} className={`rounded-full border px-4 py-2 text-xs font-semibold transition ${category === option.value ? "border-brand-purple bg-brand-purple text-white" : "border-brand-purple/15 text-brand-ink/70 hover:border-brand-purple"}`} key={option.value} onClick={() => setCategory(option.value)} type="button">{option.label}</button>
-          ))}
-        </div>
-      </div>
-      <p className="mt-4 text-xs text-brand-ink/55">Topic labels are provisional and should be confirmed with ECK.</p>
-      {visibleEvents.length === 0 ? (
-        <div className="mt-7"><EmptyState title={status === "upcoming" ? "No upcoming events announced" : "No past events published"} description="ECK has not supplied verified event details for this page. Dates, locations, and registration links will appear here after confirmation." href="/contact?topic=general#inquiry" linkLabel="Ask about activities" /></div>
-      ) : (
-        <div className="mt-7 grid gap-5 md:grid-cols-2">
-          {visibleEvents.map((event) => (
-            <article className="home-card overflow-hidden border border-brand-purple/10 bg-white" key={event.slug}>
-              {event.image && <div className="relative aspect-[16/9]"><Image alt={event.imageAlt ?? ""} className="object-cover" fill sizes="(max-width: 768px) 100vw, 50vw" src={event.image} /></div>}
-              <div className="p-6"><p className="text-xs font-bold uppercase tracking-[0.15em] text-[#0e716b]">{event.category}{event.date ? ` · ${event.date}` : ""}</p><h3 className="mt-3 text-xl font-semibold text-brand-purple">{event.title}</h3><p className="mt-3 text-sm leading-6 text-brand-ink/70">{event.summary}</p><Link className="editorial-link mt-5 inline-flex text-sm font-bold text-brand-purple underline" href={`/events/${event.slug}`}>Event details <span aria-hidden="true" className="ml-2">↗</span></Link></div>
-            </article>
-          ))}
-        </div>
-      )}
+      <form action="/events" className="grid gap-3 border-b border-brand-purple/10 pb-5 sm:grid-cols-2 lg:grid-cols-5">
+        <label className="grid gap-1 text-xs font-semibold text-brand-purple">Event period
+          <select className="min-h-11 border border-brand-purple/20 bg-white px-3 text-sm" defaultValue={query.status ?? "upcoming"} name="status">
+            <option value="upcoming">Upcoming</option><option value="past">Past</option>
+          </select>
+        </label>
+        <label className="grid gap-1 text-xs font-semibold text-brand-purple">Search
+          <input className="min-h-11 border border-brand-purple/20 bg-white px-3 text-sm" defaultValue={query.q} maxLength={100} name="q" placeholder="Event title or topic" type="search" />
+        </label>
+        <label className="grid gap-1 text-xs font-semibold text-brand-purple">Category
+          <input className="min-h-11 border border-brand-purple/20 bg-white px-3 text-sm" defaultValue={query.category} maxLength={80} name="category" placeholder="Any category" />
+        </label>
+        <label className="grid gap-1 text-xs font-semibold text-brand-purple">Starts after
+          <input className="min-h-11 border border-brand-purple/20 bg-white px-3 text-sm" defaultValue={query.from} name="from" type="date" />
+        </label>
+        <div className="flex items-end gap-3"><label className="grid flex-1 gap-1 text-xs font-semibold text-brand-purple">Starts before
+          <input className="min-h-11 border border-brand-purple/20 bg-white px-3 text-sm" defaultValue={query.to} name="to" type="date" />
+        </label><button className="min-h-11 rounded-sm bg-brand-purple px-5 text-sm font-semibold text-white" type="submit">Filter</button></div>
+      </form>
+      {unavailable ? <div className="mt-7"><EmptyState title="Events are temporarily unavailable" description="We could not load published events. Please try again shortly." /></div>
+        : result.items.length === 0 ? <div className="mt-7"><EmptyState title={query.status === "past" ? "No past events published" : "No upcoming events announced"} description="ECK has not supplied verified event details for this selection. Events will appear once they are published." href="/contact?topic=general#inquiry" linkLabel="Ask about activities" /></div>
+          : <div className="mt-7 grid gap-5 md:grid-cols-2">
+            {result.items.map((event) => <article className="home-card overflow-hidden border border-brand-purple/10 bg-white" key={event.id}>
+              {event.image && <div className="relative aspect-[16/9]"><Image alt={event.title} className="object-cover" fill sizes="(max-width: 768px) 100vw, 50vw" src={event.image} unoptimized={event.image.startsWith("https://")} /></div>}
+              <div className="p-6"><p className="text-xs font-bold uppercase tracking-[0.15em] text-[#0e716b]">{event.category ? `${event.category} · ` : ""}{event.status} · {new Date(event.startDate).toLocaleDateString()}</p><h2 className="mt-3 text-xl font-semibold text-brand-purple">{event.title}</h2><p className="mt-3 text-sm leading-6 text-brand-ink/70">{event.summary}</p><Link className="mt-5 inline-flex text-sm font-bold text-brand-purple underline" href={`/events/${event.slug}`}>Event details <span aria-hidden="true" className="ml-2">↗</span></Link></div>
+            </article>)}
+          </div>}
+      {!unavailable && <ContentPagination pathname="/events" page={result.page} pages={result.pages} query={query} />}
     </div>
   );
 }

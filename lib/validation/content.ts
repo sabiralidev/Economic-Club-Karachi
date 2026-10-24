@@ -41,6 +41,7 @@ const eventFieldsSchema = z.object({
   summary: z.string().trim().min(1).max(500),
   description: z.string().trim().min(1).max(20_000),
   image: imagePath.optional(),
+  category: z.string().trim().max(80).optional(),
   venue: z.string().trim().max(200).optional(),
   venueVerified: z.boolean().default(false),
   startDate: z.iso.datetime(),
@@ -68,6 +69,7 @@ export const articleSchema = z.object({
   tags: z.array(z.string().trim().min(1).max(40)).max(20).default([]),
   author: z.string().regex(/^[a-f\d]{24}$/i).optional(),
   published: z.boolean().default(false),
+  archived: z.boolean().default(false),
   publishedAt: z.iso.datetime().optional(),
   seo: seoFields,
 }).strict();
@@ -83,6 +85,7 @@ export const gallerySchema = z.object({
   }).strict()).min(1).max(100),
   category: z.string().trim().min(1).max(80),
   published: z.boolean().default(false),
+  archived: z.boolean().default(false),
   seo: seoFields,
 }).strict();
 
