@@ -9,7 +9,6 @@ export function HeroSection() {
         <HeroEntrance>
           <div className="flex h-full flex-col justify-center py-16 sm:py-20 lg:py-24 lg:pr-12">
             <p data-hero-item className="mb-6 flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.18em] text-brand-teal">
-              <span className="h-px w-8 bg-brand-teal" />
               Economic Club Karachi
             </p>
             <h1 data-hero-item className="font-display max-w-2xl text-[2.8rem] leading-[1.08] sm:text-6xl lg:text-[4.25rem]">
