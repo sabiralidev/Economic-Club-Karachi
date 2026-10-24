@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { cache } from "react";
 import { InquiryForm } from "@/components/home/inquiry-form";
 import { Breadcrumbs } from "@/components/public/breadcrumbs";
 import { getEventBySlug } from "@/lib/content/database";
@@ -8,9 +9,7 @@ import { pageMetadata } from "@/lib/seo";
 
 type EventPageProps = { params: Promise<{ slug: string }> };
 
-async function loadEvent(slug: string) {
-  return getEventBySlug(slug);
-}
+const loadEvent = cache(async (slug: string) => getEventBySlug(slug));
 
 export async function generateMetadata({ params }: EventPageProps) {
   const { slug } = await params;
