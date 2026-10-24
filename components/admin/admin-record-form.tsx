@@ -50,13 +50,6 @@ export function AdminRecordForm({
       );
     }
 
-    function isRecord(value: unknown): value is Record<string, unknown> {
-      return typeof value === "object" && value !== null && !Array.isArray(value);
-    }
-
-    function textValue(value: unknown): string | number {
-      return typeof value === "string" || typeof value === "number" ? value : "";
-    }
   }, [tab]);
 
   const handleChange = (key: string, value: unknown) => {
@@ -373,4 +366,12 @@ export function AdminRecordForm({
       </div>
     </form>
   );
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function textValue(value: unknown): string | number {
+  return typeof value === "string" || typeof value === "number" ? value : "";
 }
