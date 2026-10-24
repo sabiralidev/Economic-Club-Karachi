@@ -22,7 +22,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body className={`${sans.variable} ${editorial.variable} flex min-h-screen flex-col`}>
+      <body
+        className={`${sans.variable} ${editorial.variable} flex min-h-screen flex-col`}
+        suppressHydrationWarning
+      >
         <a
           className="sr-only z-50 rounded bg-white p-3 text-brand-purple focus:not-sr-only focus:absolute focus:left-4 focus:top-4"
           href="#main-content"
