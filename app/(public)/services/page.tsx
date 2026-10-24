@@ -4,6 +4,7 @@ import { InquiryForm } from "@/components/home/inquiry-form";
 import { ContentPagination } from "@/components/public/content-pagination";
 import { EmptyState } from "@/components/public/empty-state";
 import { PageHero } from "@/components/public/page-hero";
+import { SampleContentNotice } from "@/components/public/sample-content-notice";
 import { listServices, type PublicPageQuery } from "@/lib/content/database";
 import { pageMetadata } from "@/lib/seo";
 
@@ -25,6 +26,7 @@ export default async function ServicesPage({ searchParams }: ServicesPageProps) 
     unavailable = true;
     result = { items: [], page: 1, limit: 12, total: 0, pages: 0 };
   }
+  const hasSampleContent = result.items.some((service) => service.id.startsWith("sample-"));
 
   return (
     <>
@@ -38,6 +40,7 @@ export default async function ServicesPage({ searchParams }: ServicesPageProps) 
             <input className="min-h-11 border border-brand-purple/20 bg-white px-4 text-sm" defaultValue={query.category} id="service-category" maxLength={80} name="category" placeholder="Category" />
             <button className="min-h-11 rounded-sm bg-brand-purple px-5 text-sm font-semibold text-white" type="submit">Search</button>
           </form>
+          {hasSampleContent && <div className="mb-7"><SampleContentNotice /></div>}
           {unavailable ? <EmptyState title="Services are temporarily unavailable" description="We could not load published service information. Please try again shortly." />
             : result.items.length === 0 ? <EmptyState title="No published services yet" description="Published services will appear here once ECK adds them." />
               : <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
@@ -45,7 +48,7 @@ export default async function ServicesPage({ searchParams }: ServicesPageProps) 
                   <article className="home-card flex flex-col overflow-hidden border border-brand-purple/10 bg-white" key={service.id}>
                     {service.image && <div className="relative aspect-[16/9]"><Image alt={service.title} className="object-cover" fill sizes="(max-width: 768px) 100vw, 33vw" src={service.image} unoptimized={service.image.startsWith("https://")} /></div>}
                     <div className="flex flex-1 flex-col p-6">
-                      <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#0e716b]">{service.category}</p>
+                      <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#0e716b]">{service.category}{service.id.startsWith("sample-") ? " · Sample" : ""}</p>
                       <h2 className="mt-3 text-xl font-semibold text-brand-purple">{service.title}</h2>
                       <p className="mt-3 flex-1 text-sm leading-6 text-brand-ink/70">{service.summary}</p>
                       <Link className="editorial-link mt-5 inline-flex text-sm font-bold text-brand-purple underline" href={`/services/${service.slug}`}>Service details <span aria-hidden="true" className="ml-2">↗</span></Link>

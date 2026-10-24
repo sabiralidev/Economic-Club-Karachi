@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRef, useState } from "react";
 import { EmptyState } from "@/components/public/empty-state";
+import { SampleContentNotice } from "@/components/public/sample-content-notice";
 import type { GalleryContent } from "@/lib/content/database";
 
 type GalleryBrowserProps = { items: GalleryContent[]; unavailable?: boolean };
@@ -23,6 +24,7 @@ export function GalleryBrowser({ items, unavailable = false }: GalleryBrowserPro
   }
   return (
     <>
+      {items.some((item) => item.id.startsWith("sample-")) && <div className="mt-7"><SampleContentNotice /></div>}
       {unavailable ? <div className="mt-7"><EmptyState title="Gallery is temporarily unavailable" description="We could not load approved gallery items. Please try again shortly." /></div>
         : images.length === 0 ? <div className="mt-7"><EmptyState title="No approved ECK photos yet" description="This gallery will show event and community images after ECK supplies and approves them." href="/contact?topic=general#inquiry" linkLabel="Ask about contributing photos" /></div>
           : <div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">

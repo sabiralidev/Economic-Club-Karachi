@@ -21,29 +21,35 @@ export function ScrollReveal({ children, className, animateSections = false }: S
     const container = containerRef.current;
     if (!container || (animateSections && pathname === "/")) return;
 
-    const media = gsap.matchMedia();
-    media.add("(prefers-reduced-motion: no-preference)", () => {
-      const elements = animateSections
-        ? Array.from(container.querySelectorAll<HTMLElement>(":scope > section, :scope > article, :scope > header"))
-        : gsap.utils.toArray<HTMLElement>("[data-reveal]", container);
+    let media: ReturnType<typeof gsap.matchMedia> | undefined;
+    const frame = requestAnimationFrame(() => {
+      media = gsap.matchMedia();
+      media.add("(prefers-reduced-motion: no-preference)", () => {
+        const elements = animateSections
+          ? Array.from(container.querySelectorAll<HTMLElement>(":scope > section, :scope > article, :scope > header"))
+          : gsap.utils.toArray<HTMLElement>("[data-reveal]", container);
 
-      elements.forEach((element, index) => {
-        gsap.from(element, {
-          opacity: 0,
-          y: 20,
-          delay: index * 0.06,
-          duration: 0.6,
-          ease: "power2.out",
-          scrollTrigger: {
-            trigger: element,
-            start: "top 88%",
-            once: true,
-          },
+        elements.forEach((element, index) => {
+          gsap.from(element, {
+            opacity: 0,
+            y: 20,
+            delay: index * 0.06,
+            duration: 0.6,
+            ease: "power2.out",
+            scrollTrigger: {
+              trigger: element,
+              start: "top 88%",
+              once: true,
+            },
+          });
         });
       });
     });
 
-    return () => media.revert();
+    return () => {
+      cancelAnimationFrame(frame);
+      media?.revert();
+    };
   }, [animateSections, pathname]);
 
   return (

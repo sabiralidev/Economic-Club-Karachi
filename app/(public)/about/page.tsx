@@ -1,7 +1,8 @@
+import Image from "next/image";
 import Link from "next/link";
 import { FaqAccordion } from "@/components/public/faq-accordion";
 import { PageHero } from "@/components/public/page-hero";
-import { EmptyState } from "@/components/public/empty-state";
+import { SampleContentNotice } from "@/components/public/sample-content-notice";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata({
@@ -69,7 +70,20 @@ export default function AboutPage() {
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#0e716b]">Initiatives & activities</p>
           <h2 className="font-display mt-4 text-3xl leading-tight text-brand-purple sm:text-4xl">ECK&apos;s current work is being confirmed.</h2>
           <p className="mt-4 max-w-2xl text-base leading-7 text-brand-ink/70">We will publish activity descriptions only after ECK confirms their purpose, status, and participation details.</p>
-          <div className="mt-8"><EmptyState title="No verified initiatives published yet" description="Contact ECK for current information about its work and how to express interest." href="/contact#inquiry" linkLabel="Contact ECK" /></div>
+          <div className="mt-6"><SampleContentNotice /></div>
+          <div className="mt-8 grid gap-5 md:grid-cols-3">
+            {[
+              { title: "Economic learning", text: "An illustrative concept for accessible conversations about everyday economic topics.", image: "/images/ideas-workspace.jpg" },
+              { title: "Community dialogue", text: "A sample format for listening to different perspectives on local priorities.", image: "/images/community-dialogue.jpg" },
+              { title: "Shared knowledge", text: "A possible way to bring practical experience and research into one discussion.", image: "/images/conversation.jpg" },
+            ].map((item) => (
+              <article className="overflow-hidden border border-brand-purple/10 bg-white" key={item.title}>
+                <div className="relative aspect-[16/9]"><Image alt="" className="object-cover" fill sizes="(max-width: 768px) 100vw, 33vw" src={item.image} /></div>
+                <div className="p-6"><p className="text-xs font-bold uppercase tracking-[0.14em] text-[#0e716b]">Illustrative concept</p><h3 className="mt-3 text-lg font-semibold text-brand-purple">{item.title}</h3><p className="mt-3 text-sm leading-6 text-brand-ink/70">{item.text}</p></div>
+              </article>
+            ))}
+          </div>
+          <Link className="editorial-link mt-6 inline-flex text-sm font-bold text-brand-purple underline" href="/contact#inquiry">Ask ECK about current initiatives <span aria-hidden="true" className="ml-2">↗</span></Link>
         </div>
       </section>
       <section className="bg-white py-16 sm:py-20">
@@ -78,7 +92,11 @@ export default function AboutPage() {
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#0e716b]">Milestones</p>
             <h2 className="font-display mt-4 text-3xl leading-tight text-brand-purple sm:text-4xl">A timeline needs verified dates.</h2>
           </div>
-          <EmptyState title="No milestones confirmed" description="Founding dates, awards, impact numbers, and other historical claims will be added only after ECK verifies them." />
+          <div><SampleContentNotice /><div className="mt-5 grid gap-4 sm:grid-cols-3">{[
+            { number: "01", title: "Organization profile", text: "Confirm the story and purpose ECK wants to share." },
+            { number: "02", title: "Activities", text: "Add dates and details only when the organization verifies them." },
+            { number: "03", title: "Community impact", text: "Share outcomes when supporting information is available." },
+          ].map((item) => <article className="border-t-2 border-brand-purple/15 bg-brand-paper p-5" key={item.number}><span className="font-display text-2xl text-brand-teal">{item.number}</span><h3 className="mt-2 font-semibold text-brand-purple">{item.title}</h3><p className="mt-2 text-sm leading-6 text-brand-ink/70">{item.text}</p></article>)}</div></div>
         </div>
       </section>
       <FaqAccordion items={[

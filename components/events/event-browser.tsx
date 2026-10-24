@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ContentPagination } from "@/components/public/content-pagination";
 import { EmptyState } from "@/components/public/empty-state";
+import { SampleContentNotice } from "@/components/public/sample-content-notice";
 import type { EventSummary, PageResult, PublicPageQuery } from "@/lib/content/database";
 
 type EventBrowserProps = {
@@ -13,6 +14,7 @@ type EventBrowserProps = {
 export function EventBrowser({ result, query, unavailable = false }: EventBrowserProps) {
   return (
     <div>
+      {result.items.some((event) => event.id.startsWith("sample-")) && <div className="mb-7"><SampleContentNotice /></div>}
       <form action="/events" className="grid gap-3 border-b border-brand-purple/10 pb-5 sm:grid-cols-2 lg:grid-cols-5">
         <label className="grid gap-1 text-xs font-semibold text-brand-purple">Event period
           <select className="min-h-11 border border-brand-purple/20 bg-white px-3 text-sm" defaultValue={query.status ?? "upcoming"} name="status">
@@ -37,7 +39,7 @@ export function EventBrowser({ result, query, unavailable = false }: EventBrowse
           : <div className="mt-7 grid gap-5 md:grid-cols-2">
             {result.items.map((event) => <article className="home-card overflow-hidden border border-brand-purple/10 bg-white" key={event.id}>
               {event.image && <div className="relative aspect-[16/9]"><Image alt={event.title} className="object-cover" fill sizes="(max-width: 768px) 100vw, 50vw" src={event.image} unoptimized={event.image.startsWith("https://")} /></div>}
-              <div className="p-6"><p className="text-xs font-bold uppercase tracking-[0.15em] text-[#0e716b]">{event.category ? `${event.category} · ` : ""}{event.status} · {new Date(event.startDate).toLocaleDateString()}</p><h2 className="mt-3 text-xl font-semibold text-brand-purple">{event.title}</h2><p className="mt-3 text-sm leading-6 text-brand-ink/70">{event.summary}</p><Link className="mt-5 inline-flex text-sm font-bold text-brand-purple underline" href={`/events/${event.slug}`}>Event details <span aria-hidden="true" className="ml-2">↗</span></Link></div>
+              <div className="p-6"><p className="text-xs font-bold uppercase tracking-[0.15em] text-[#0e716b]">{event.category ? `${event.category} · ` : ""}{event.status} · {new Date(event.startDate).toLocaleDateString()}{event.id.startsWith("sample-") ? " · Sample" : ""}</p><h2 className="mt-3 text-xl font-semibold text-brand-purple">{event.title}</h2><p className="mt-3 text-sm leading-6 text-brand-ink/70">{event.summary}</p><Link className="mt-5 inline-flex text-sm font-bold text-brand-purple underline" href={`/events/${event.slug}`}>Event details <span aria-hidden="true" className="ml-2">↗</span></Link></div>
             </article>)}
           </div>}
       {!unavailable && <ContentPagination pathname="/events" page={result.page} pages={result.pages} query={query} />}

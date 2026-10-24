@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 import { Breadcrumbs } from "@/components/public/breadcrumbs";
+import { SampleContentNotice } from "@/components/public/sample-content-notice";
 import { getGalleryBySlug } from "@/lib/content/database";
 import { pageMetadata } from "@/lib/seo";
 
@@ -26,6 +27,7 @@ export default async function GalleryDetailPage({ params }: GalleryDetailProps) 
     <article className="bg-brand-paper py-12 sm:py-16">
       <div className="mx-auto max-w-5xl px-5 sm:px-8">
         <Breadcrumbs items={[{ label: "Gallery", href: "/gallery" }, { label: item.title }]} />
+        {item.id.startsWith("sample-") && <div className="mt-6"><SampleContentNotice /></div>}
         <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#0e716b]">{item.category}</p>
         <h1 className="font-display mt-3 text-4xl text-brand-purple sm:text-5xl">{item.title}</h1>
         {item.description && <p className="mt-4 max-w-3xl text-base leading-7 text-brand-ink/70">{item.description}</p>}

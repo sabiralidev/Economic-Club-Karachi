@@ -5,6 +5,16 @@ import { Gallery } from "@/models/gallery";
 import { Service } from "@/models/service";
 import { SiteSettings } from "@/models/site-settings";
 import { connectMongo } from "@/lib/db/mongodb";
+import {
+  sampleArticleBySlug,
+  sampleArticles,
+  sampleEventBySlug,
+  sampleEvents,
+  sampleGalleryBySlug,
+  sampleGalleries,
+  sampleServiceBySlug,
+  sampleServices,
+} from "@/lib/content/sample-data";
 
 export type PageResult<T> = {
   items: T[];
@@ -95,18 +105,21 @@ export type PublicPageQuery = {
 };
 
 export async function listServices(query: PublicPageQuery = {}): Promise<PageResult<ServiceSummary>> {
-  await connectMongo();
   const page = pageNumber(query.page);
   const limit = pageLimit(query.limit);
   const filter: Record<string, unknown> = { published: true, archived: { $ne: true } };
   addCategory(filter, query.category);
   addText(filter, query.q);
-  const [documents, total] = await Promise.all([
+  const sort = sortOption(query.sort, { newest: { createdAt: -1, _id: -1 }, oldest: { createdAt: 1, _id: 1 }, title: { title: 1, _id: 1 } }, { updatedAt: -1, _id: -1 });
+  if (await connectOrUseSampleContent("services")) return sampleServices(query);
+  const [documents, total, publishedTotal] = await Promise.all([
     Service.find(filter).select("title slug summary category image seo createdAt updatedAt")
-      .sort(sortOption(query.sort, { newest: { createdAt: -1, _id: -1 }, oldest: { createdAt: 1, _id: 1 }, title: { title: 1, _id: 1 } }, { updatedAt: -1, _id: -1 }))
+      .sort(sort)
       .skip((page - 1) * limit).limit(limit).lean(),
     Service.countDocuments(filter),
+    Service.countDocuments({ published: true, archived: { $ne: true } }),
   ]);
+  if (publishedTotal === 0) return sampleServices(query);
   return pageResult(documents.map((record) => ({
     id: record._id.toString(), title: record.title, slug: record.slug, summary: record.summary,
     category: record.category, image: optionalString(record.image),
@@ -115,18 +128,19 @@ export async function listServices(query: PublicPageQuery = {}): Promise<PageRes
 }
 
 export async function getServiceBySlug(slug: string): Promise<ServiceContent | null> {
-  await connectMongo();
+  if (await connectOrUseSampleContent("services")) return sampleServiceBySlug(slug);
   const record = await Service.findOne({ slug, published: true, archived: { $ne: true } })
     .select("title slug summary description category image seo createdAt updatedAt").lean();
-  return record ? {
+  if (record) return {
     id: record._id.toString(), title: record.title, slug: record.slug, summary: record.summary,
     description: record.description, category: record.category, image: optionalString(record.image),
     seo: seoContent(record.seo), createdAt: record.createdAt.toISOString(), updatedAt: record.updatedAt.toISOString(),
-  } : null;
+  };
+  const publishedTotal = await Service.countDocuments({ published: true, archived: { $ne: true } });
+  return publishedTotal === 0 ? sampleServiceBySlug(slug) : null;
 }
 
 export async function listEvents(query: PublicPageQuery = {}): Promise<PageResult<EventSummary>> {
-  await connectMongo();
   const page = pageNumber(query.page);
   const limit = pageLimit(query.limit);
   const filter: Record<string, unknown> = { published: true, archived: { $ne: true }, status: { $ne: "cancelled" } };
@@ -150,11 +164,14 @@ export async function listEvents(query: PublicPageQuery = {}): Promise<PageResul
     oldest: { startDate: 1, _id: 1 },
     upcoming: { startDate: 1, _id: 1 },
   }, { startDate: 1, _id: 1 });
-  const [documents, total] = await Promise.all([
+  if (await connectOrUseSampleContent("events")) return sampleEvents(query);
+  const [documents, total, publishedTotal] = await Promise.all([
     Event.find(filter).select("title slug summary image category venue venueVerified startDate endDate status registration seo createdAt updatedAt")
       .sort(sort).skip((page - 1) * limit).limit(limit).lean(),
     Event.countDocuments(filter),
+    Event.countDocuments({ published: true, archived: { $ne: true }, status: { $ne: "cancelled" } }),
   ]);
+  if (publishedTotal === 0) return sampleEvents(query);
   return pageResult(documents.map((record) => ({
     id: record._id.toString(), title: record.title, slug: record.slug, summary: record.summary,
     image: optionalString(record.image), category: optionalString(record.category), venue: record.venueVerified ? optionalString(record.venue) : undefined,
@@ -165,32 +182,37 @@ export async function listEvents(query: PublicPageQuery = {}): Promise<PageResul
 }
 
 export async function getEventBySlug(slug: string): Promise<EventContent | null> {
-  await connectMongo();
+  if (await connectOrUseSampleContent("events")) return sampleEventBySlug(slug);
   const record = await Event.findOne({ slug, published: true, archived: { $ne: true }, status: { $ne: "cancelled" } })
     .select("title slug summary description image category venue venueVerified startDate endDate status registration seo createdAt updatedAt").lean();
-  return record ? {
+  if (record) return {
     id: record._id.toString(), title: record.title, slug: record.slug, summary: record.summary,
     description: record.description, image: optionalString(record.image), category: optionalString(record.category), venue: record.venueVerified ? optionalString(record.venue) : undefined,
     startDate: record.startDate.toISOString(), endDate: record.endDate?.toISOString(),
     status: record.status, registration: record.registration ?? { enabled: false }, seo: seoContent(record.seo),
     createdAt: record.createdAt.toISOString(), updatedAt: record.updatedAt.toISOString(),
-  } : null;
+  };
+  const publishedTotal = await Event.countDocuments({ published: true, archived: { $ne: true }, status: { $ne: "cancelled" } });
+  return publishedTotal === 0 ? sampleEventBySlug(slug) : null;
 }
 
 export async function listArticles(query: PublicPageQuery = {}): Promise<PageResult<ArticleSummary>> {
-  await connectMongo();
   const page = pageNumber(query.page);
   const limit = pageLimit(query.limit);
   const filter: Record<string, unknown> = { published: true, archived: { $ne: true }, publishedAt: { $lte: new Date() } };
   addCategory(filter, query.category);
   addText(filter, query.q);
   if (query.tag) filter.tags = bounded(query.tag, 40, "tag");
-  const [documents, total] = await Promise.all([
+  const sort = sortOption(query.sort, { oldest: { publishedAt: 1, _id: 1 }, title: { title: 1, _id: 1 } }, { publishedAt: -1, _id: -1 });
+  if (await connectOrUseSampleContent("insights")) return sampleArticles(query);
+  const [documents, total, publishedTotal] = await Promise.all([
     Article.find(filter).select("title slug excerpt featuredImage category tags publishedAt seo createdAt updatedAt")
-      .sort(sortOption(query.sort, { oldest: { publishedAt: 1, _id: 1 }, title: { title: 1, _id: 1 } }, { publishedAt: -1, _id: -1 }))
+      .sort(sort)
       .skip((page - 1) * limit).limit(limit).lean(),
     Article.countDocuments(filter),
+    Article.countDocuments({ published: true, archived: { $ne: true }, publishedAt: { $lte: new Date() } }),
   ]);
+  if (publishedTotal === 0) return sampleArticles(query);
   return pageResult(documents.map((record) => ({
     id: record._id.toString(), title: record.title, slug: record.slug, excerpt: record.excerpt,
     featuredImage: optionalString(record.featuredImage), category: record.category,
@@ -200,31 +222,36 @@ export async function listArticles(query: PublicPageQuery = {}): Promise<PageRes
 }
 
 export async function getArticleBySlug(slug: string): Promise<ArticleContent | null> {
-  await connectMongo();
+  if (await connectOrUseSampleContent("insights")) return sampleArticleBySlug(slug);
   const record = await Article.findOne({
     slug, published: true, archived: { $ne: true }, publishedAt: { $lte: new Date() },
   }).select("title slug excerpt body featuredImage category tags publishedAt seo createdAt updatedAt").lean();
-  return record ? {
+  if (record) return {
     id: record._id.toString(), title: record.title, slug: record.slug, excerpt: record.excerpt,
     body: record.body, featuredImage: optionalString(record.featuredImage), category: record.category, tags: record.tags,
     publishedAt: record.publishedAt?.toISOString(),
     seo: seoContent(record.seo), createdAt: record.createdAt.toISOString(), updatedAt: record.updatedAt.toISOString(),
-  } : null;
+  };
+  const publishedTotal = await Article.countDocuments({ published: true, archived: { $ne: true }, publishedAt: { $lte: new Date() } });
+  return publishedTotal === 0 ? sampleArticleBySlug(slug) : null;
 }
 
 export async function listGallery(query: PublicPageQuery = {}): Promise<PageResult<GalleryContent>> {
-  await connectMongo();
   const page = pageNumber(query.page);
   const limit = pageLimit(query.limit);
   const filter: Record<string, unknown> = { published: true, archived: { $ne: true } };
   addCategory(filter, query.category);
   addText(filter, query.q);
-  const [documents, total] = await Promise.all([
+  const sort = sortOption(query.sort, { newest: { createdAt: -1, _id: -1 }, oldest: { createdAt: 1, _id: 1 }, title: { title: 1, _id: 1 } }, { updatedAt: -1, _id: -1 });
+  if (await connectOrUseSampleContent("gallery")) return sampleGalleries(query);
+  const [documents, total, publishedTotal] = await Promise.all([
     Gallery.find(filter).select("title slug description images category seo createdAt updatedAt")
-      .sort(sortOption(query.sort, { newest: { createdAt: -1, _id: -1 }, oldest: { createdAt: 1, _id: 1 }, title: { title: 1, _id: 1 } }, { updatedAt: -1, _id: -1 }))
+      .sort(sort)
       .skip((page - 1) * limit).limit(limit).lean(),
     Gallery.countDocuments(filter),
+    Gallery.countDocuments({ published: true, archived: { $ne: true } }),
   ]);
+  if (publishedTotal === 0) return sampleGalleries(query);
   return pageResult(documents.map((record) => ({
     id: record._id.toString(), title: record.title, slug: record.slug, description: record.description,
     images: Array.from(record.images, (image) => ({
@@ -235,16 +262,18 @@ export async function listGallery(query: PublicPageQuery = {}): Promise<PageResu
 }
 
 export async function getGalleryBySlug(slug: string): Promise<GalleryContent | null> {
-  await connectMongo();
+  if (await connectOrUseSampleContent("gallery")) return sampleGalleryBySlug(slug);
   const record = await Gallery.findOne({ slug, published: true, archived: { $ne: true } })
     .select("title slug description images category seo createdAt updatedAt").lean();
-  return record ? {
+  if (record) return {
     id: record._id.toString(), title: record.title, slug: record.slug, description: record.description,
     images: Array.from(record.images, (image) => ({
       src: image.src, alt: image.alt, caption: optionalString(image.caption),
     })), category: record.category, seo: seoContent(record.seo), createdAt: record.createdAt.toISOString(),
     updatedAt: record.updatedAt.toISOString(),
-  } : null;
+  };
+  const publishedTotal = await Gallery.countDocuments({ published: true, archived: { $ne: true } });
+  return publishedTotal === 0 ? sampleGalleryBySlug(slug) : null;
 }
 
 export async function getPublicSiteSettings(): Promise<PublicSiteSettings | null> {
@@ -269,6 +298,23 @@ export async function getPublicSiteSettings(): Promise<PublicSiteSettings | null
 
 function optionalString(value: string | null | undefined): string | undefined {
   return value ?? undefined;
+}
+
+async function connectOrUseSampleContent(section: string): Promise<boolean> {
+  try {
+    await connectMongo();
+    return false;
+  } catch (error) {
+    if (!(error instanceof Error) || !isDatabaseUnavailable(error)) throw error;
+    console.warn(`MongoDB unavailable; serving sample ${section} content.`);
+    return true;
+  }
+}
+
+function isDatabaseUnavailable(error: Error): boolean {
+  return error.name === "DatabaseConfigurationError"
+    || error.message === "MONGODB_URI is required to use MongoDB-backed features."
+    || ["MongoServerSelectionError", "MongooseServerSelectionError", "MongoNetworkError", "MongoNetworkTimeoutError"].includes(error.name);
 }
 
 function seoContent(value: {
