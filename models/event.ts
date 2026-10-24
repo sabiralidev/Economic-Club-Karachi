@@ -7,6 +7,7 @@ const eventSchema = new Schema({
   summary: { type: String, required: true, trim: true, maxlength: 500 },
   description: { type: String, required: true, trim: true, maxlength: 20_000 },
   image: { type: String, maxlength: 2048 },
+  category: { type: String, trim: true, maxlength: 80 },
   venue: { type: String, trim: true, maxlength: 200 },
   venueVerified: { type: Boolean, default: false, required: true },
   startDate: { type: Date, required: true },
@@ -26,6 +27,7 @@ const eventSchema = new Schema({
 
 eventSchema.index({ slug: 1 }, { unique: true });
 eventSchema.index({ published: 1, archived: 1, status: 1, startDate: 1 });
+eventSchema.index({ published: 1, archived: 1, category: 1, startDate: 1 });
 eventSchema.index({ title: "text", summary: "text", description: "text" });
 
 export type EventDocument = InferSchemaType<typeof eventSchema>;

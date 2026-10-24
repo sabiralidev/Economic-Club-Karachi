@@ -11,7 +11,7 @@ export function MembershipSection() {
             Share your interest with ECK. Membership eligibility, benefits and partnership arrangements have not yet been confirmed, so the team can follow up with current details.
           </p>
         </div>
-        <InquiryForm defaultPurpose="membership" />
+        <InquiryForm application />
       </div>
     </section>
   );

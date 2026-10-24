@@ -3,8 +3,8 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { GalleryBrowser } from "@/components/gallery/gallery-browser";
 
 const items = [
-  { slug: "image-one", title: "First approved image", src: "/one.jpg", alt: "First image description", category: "events" as const },
-  { slug: "image-two", title: "Second approved image", src: "/two.jpg", alt: "Second image description", category: "community" as const },
+  { id: "gallery-one", slug: "image-one", title: "First approved image", description: "", category: "events", images: [{ src: "/one.jpg", alt: "First image description" }], createdAt: "", updatedAt: "" },
+  { id: "gallery-two", slug: "image-two", title: "Second approved image", description: "", category: "community", images: [{ src: "/two.jpg", alt: "Second image description" }], createdAt: "", updatedAt: "" },
 ];
 
 describe("GalleryBrowser", () => {
@@ -20,7 +20,7 @@ describe("GalleryBrowser", () => {
   it("opens an image and navigates between approved items", () => {
     render(<GalleryBrowser items={items} />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Open image: First approved image" }));
+    fireEvent.click(screen.getByRole("button", { name: "Open image: First image description" }));
     const dialog = screen.getByRole("dialog", { name: "Gallery image viewer" });
     expect(dialog).toHaveAttribute("open");
     expect(within(dialog).getByRole("img", { name: "First image description" })).toBeInTheDocument();

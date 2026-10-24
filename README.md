@@ -15,7 +15,7 @@ npm install
 cp .env.example .env.local
 ```
 
-Set `MONGODB_URI`, `ADMIN_SESSION_SECRET` (at least 32 random characters), and `NEXT_PUBLIC_SITE_URL` in `.env.local`. MongoDB-backed API routes return a service-unavailable response until a database is configured; public pages remain available. `.env.example` contains placeholders only.
+Set `MONGODB_URI`, `ADMIN_SESSION_SECRET` (at least 32 random characters), and `NEXT_PUBLIC_SITE_URL` in `.env.local`. MongoDB-backed API routes return a service-unavailable response until a database is configured. Homepage and list pages show explicit empty/unavailable states; dynamic database-backed detail pages require MongoDB. `.env.example` contains placeholders only.
 
 ## Development and production
 
@@ -87,17 +87,37 @@ Admin endpoints require an active session. Editors may manage content, including
 | `/api/admin/inquiries`, `/api/admin/inquiries/[id]` | GET; GET, PATCH, DELETE | Administrator only; status changes are validated. |
 | `/api/admin/applications`, `/api/admin/applications/[id]` | GET; GET, PATCH, DELETE | Administrator only; status changes are validated. |
 
-## Structure and route plan
+## Phase 5 integration checklist
 
-- `app/`: App Router layouts, public pages, dynamic detail routes, API handlers, and admin foundation.
+| Frontend feature | Integrated server operation | Behavior |
+| --- | --- | --- |
+| Home services, events and insights sections | Published Mongoose queries in `lib/content/database.ts` | Loads small, sorted result sets; displays empty or unavailable states without invented content. |
+| Services list and detail | Published services query by page/search/category and lookup by slug | Search and pagination are URL-backed; details and metadata use the published record. |
+| Events list and detail | Published event query by status/category/date/text and lookup by slug | Filters and pagination are URL-backed; an unverified venue is never returned. |
+| Event registration | `/api/events/[slug]/register` | Registration form is shown as a request only when the event is upcoming and registration is enabled. |
+| News and article detail | Published article query by text/category/tag and lookup by slug | Search and pagination use server queries; related articles are loaded from the same category. |
+| Gallery and gallery detail | Published gallery query by category/text and lookup by slug | Paginated records and approved image URLs are displayed with the existing accessible lightbox. |
+| Contact | `/api/inquiries` plus approved public settings | Contact, phone and address are shown only when configured; submissions remain in the form on recoverable errors. |
+| Membership / participation | `/api/applications` | Saves a consented application with a selected interest category. |
+| Admin content management | Protected `/api/admin/{services,events,articles,gallery}` routes | Editors/admins can create, edit, publish/unpublish, archive/unarchive and delete records. The dashboard uses a JSON editor validated by the API. |
+| Admin inquiries and applications | Protected `/api/admin/{inquiries,applications}` routes | Admin-only lists show safe submission fields and timestamps; statuses can be updated or records deleted. |
+| Admin authentication and site settings | `/api/admin/session`, `/api/admin/site-settings` | Server-verified roles protect dashboard access and all data/mutations; settings are admin-only. |
+
+Gallery uploads are not configured: administrators must provide approved local image paths or HTTPS image URLs. No notification provider is configured, so successful submissions confirm database persistence only and do not claim an email was sent. The contact page reads approved settings directly on the server; missing settings are not replaced with fabricated contact data.
+
+Real database workflows—including admin bootstrap/login, CRUD persistence, submission storage, and the 12 end-to-end scenarios—must be exercised against an isolated configured MongoDB database before release. This workspace does not include a configured test database, so those scenarios are not claimed as verified. The MongoDB integration test remains gated on `TEST_MONGODB_URI` and a database name ending in `_test`.
+
+## Structure
+
+- `app/`: App Router layouts, public pages, dynamic detail routes, API handlers, and protected admin dashboard.
 - `components/`: shared brand/layout components and reusable homepage sections.
-- `lib/`: content drafts, validation, server environment, MongoDB, and admin session utilities.
+- `lib/`: published-content database queries, validation, server environment, MongoDB, and admin session utilities.
 - `models/`: Mongoose schemas and indexes for content, settings, administrators, submissions, and rate limits.
 - `app/api/`: public and admin Route Handlers for MongoDB-backed content, forms, sessions, settings, and health.
 - `tests/`: Vitest/React Testing Library unit tests and Playwright end-to-end tests.
 - `public/`: static brand assets.
 
-Primary navigation: Home, About, Services, Events, Community, Insights, Contact. Supporting routes include `/business`, `/membership`, `/services/[slug]`, `/events/[slug]`, `/gallery`, `/insights/[slug]`, `/privacy`, and `/terms`. The admin dashboard UI is intentionally a foundation; its authentication and server-side APIs are implemented, but content-management screens are not part of this backend phase.
+Primary navigation: Home, About, Services, Events, Community, Insights, Contact. Supporting routes include `/business`, `/membership`, `/services/[slug]`, `/events/[slug]`, `/gallery`, `/insights/[slug]`, `/privacy`, and `/terms`. `/admin` redirects unauthenticated users to `/admin/login`; content operations are enforced by protected APIs, not only by dashboard UI controls.
 
 ## Design and accessibility
 

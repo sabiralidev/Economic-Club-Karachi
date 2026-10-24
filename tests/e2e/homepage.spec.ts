@@ -8,7 +8,7 @@ test("homepage content and editorial images render without horizontal overflow",
 
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Progress begins when people come together.");
   await expect(page.getByRole("heading", { name: "A community-minded perspective on a changing city." })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "A starting point for what ECK may explore." })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Published work and services." })).toBeVisible();
   await page.screenshot({ path: "test-results/home-desktop.png" });
 
   const images = page.locator("main img");
@@ -65,6 +65,7 @@ test("inquiry form submits and reports a successful response", async ({ page }) 
   await page.getByLabel("Name", { exact: true }).fill("Test Visitor");
   await page.getByLabel("Email", { exact: true }).fill("visitor@example.com");
   await page.getByLabel("Message", { exact: true }).fill("I would like to learn more about ECK.");
+  await page.getByRole("checkbox").check();
   await page.getByRole("button", { name: "Send enquiry" }).click();
 
   await expect(page.getByRole("status")).toHaveText("Thank you. Your enquiry has been received.");
