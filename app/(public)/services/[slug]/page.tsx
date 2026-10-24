@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { cache } from "react";
 import { InquiryForm } from "@/components/home/inquiry-form";
 import { Breadcrumbs } from "@/components/public/breadcrumbs";
 import { getServiceBySlug } from "@/lib/content/database";
@@ -8,9 +9,7 @@ import { pageMetadata } from "@/lib/seo";
 
 type ServicePageProps = { params: Promise<{ slug: string }> };
 
-async function loadService(slug: string) {
-  return getServiceBySlug(slug);
-}
+const loadService = cache(async (slug: string) => getServiceBySlug(slug));
 
 export async function generateMetadata({ params }: ServicePageProps) {
   const { slug } = await params;
