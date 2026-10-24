@@ -10,7 +10,7 @@
   --color-brand-paper: #f6f5f1;
   --font-sans: var(--font-body);
   --font-display: var(--font-editorial);
-  --container-content: 76rem;
+  --container-content: min(95vw, 120rem);
   --shadow-card: 0 16px 42px rgba(33, 22, 47, 0.08);
 }
 
