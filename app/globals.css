@@ -35,6 +35,8 @@
 html {
   scroll-behavior: smooth;
   scroll-padding-top: 6rem;
+  scrollbar-color: rgba(33, 22, 47, 0.3) transparent;
+  scrollbar-width: thin;
 }
 
 body {
@@ -43,6 +45,29 @@ body {
   font-family: var(--font-body), sans-serif;
   margin: 0;
   min-height: 100vh;
+}
+
+*::-webkit-scrollbar {
+  height: 12px;
+  width: 12px;
+}
+
+*::-webkit-scrollbar-track,
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: rgba(33, 22, 47, 0.28);
+  background-clip: content-box;
+  border: 3px solid transparent;
+  border-radius: 999px;
+  transition: background-color 200ms ease;
+}
+
+*::-webkit-scrollbar-thumb:hover,
+*::-webkit-scrollbar-thumb:active {
+  background-color: var(--brand-teal);
 }
 
 ::selection {
