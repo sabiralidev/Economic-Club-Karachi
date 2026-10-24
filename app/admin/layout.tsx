@@ -1,7 +1,5 @@
 import type { ReactNode } from "react";
-import { requireAdminSession } from "@/lib/auth/session";
 
-export default async function AdminLayout({ children }: Readonly<{ children: ReactNode }>) {
-  await requireAdminSession();
+export default function AdminLayout({ children }: Readonly<{ children: ReactNode }>) {
   return <div className="min-h-screen bg-brand-paper">{children}</div>;
 }
