@@ -1,8 +1,14 @@
 import Link from "next/link";
 import { InquiryForm } from "@/components/home/inquiry-form";
+import { ContentCard } from "@/components/public/content-card";
 import { FaqAccordion } from "@/components/public/faq-accordion";
 import { PageHero } from "@/components/public/page-hero";
 import { SampleContentNotice } from "@/components/public/sample-content-notice";
+import { ScrollReveal } from "@/components/scroll-reveal";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
+import { Eyebrow } from "@/components/ui/eyebrow";
+import { SectionHeading } from "@/components/ui/section-heading";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata({
@@ -11,18 +17,231 @@ export const metadata = pageMetadata({
   path: "/business",
 });
 
+type FrameworkStep = {
+  title: string;
+  text: string;
+};
+
+type Collaboration = {
+  title: string;
+  text: string;
+};
+
+type SampleReading = {
+  title: string;
+  category: string;
+  text: string;
+  href: string;
+};
+
+const framework: FrameworkStep[] = [
+  { title: "Questions", text: "What changes or constraints are people navigating?" },
+  { title: "Perspectives", text: "Whose experience would make the conversation more complete?" },
+  { title: "Possibilities", text: "What small next step could be explored, if participants agree?" },
+];
+
+const collaborations: Collaboration[] = [
+  {
+    title: "Shared learning",
+    text: "Could a conversation help people compare experiences around a topic? This is an example question, not a scheduled event.",
+  },
+  {
+    title: "Community perspective",
+    text: "Could a local viewpoint inform how an issue is understood? Any involvement requires ECK and participant agreement.",
+  },
+];
+
+const sampleReadings: SampleReading[] = [
+  {
+    title: "Export-led growth",
+    category: "Economy",
+    text: "A sample article topic on trade, productivity, and business competitiveness.",
+    href: "/insights/future-export-led-growth-pakistan",
+  },
+  {
+    title: "Financial technology",
+    category: "Finance",
+    text: "An illustrative reading topic about digital banking and financial services.",
+    href: "/insights/digital-transformation-banking-sector",
+  },
+  {
+    title: "Industry and development",
+    category: "Development",
+    text: "A sample topic for considering industrial cooperation and local enterprise.",
+    href: "/insights/impact-cpec-phase-ii-industrialization",
+  },
+];
+
+const formats: FrameworkStep[] = [
+  {
+    title: "Market questions",
+    text: "A sample roundtable outline for comparing sector questions and identifying what information is missing.",
+  },
+  {
+    title: "Founder perspectives",
+    text: "An illustrative peer conversation about early-stage business challenges and lessons learned.",
+  },
+  {
+    title: "Research to practice",
+    text: "A possible format for discussing how published economic research relates to business decisions.",
+  },
+];
+
+const faqs = [
+  {
+    question: "Does ECK offer business advice or funding?",
+    answer: "No such service, funding offer, or policy has been verified. Please contact ECK for current information.",
+  },
+  {
+    question: "Can I propose a business or entrepreneurship discussion?",
+    answer: "Yes. You can send an idea for ECK to review; submission does not guarantee that an activity will be arranged.",
+  },
+];
+
 export default function BusinessPage() {
   return (
     <>
-      <PageHero eyebrow="Business & entrepreneurship" title="Bring a question worth discussing." description="A place to explore possible connections between business, entrepreneurship, and community life, without assuming a confirmed ECK programme." />
-      <section className="bg-brand-paper py-14 sm:py-18"><div className="mx-auto grid max-w-content gap-8 px-5 sm:px-8 md:grid-cols-2 md:gap-16"><div><p className="text-xs font-bold uppercase tracking-[0.18em] text-[#0e716b]">Introduction</p><h2 className="font-display mt-4 text-3xl text-brand-purple sm:text-4xl">A local ecosystem has many voices.</h2></div><p className="text-base leading-7 text-brand-ink/70">ECK&apos;s confirmed business activities and entrepreneurship support have not been provided. This page presents questions people may bring to the organization, not a list of ECK offers.</p></div></section>
-      <section className="bg-white py-14 sm:py-18"><div className="mx-auto max-w-content px-5 sm:px-8"><p className="text-xs font-bold uppercase tracking-[0.18em] text-[#0e716b]">Business ecosystem · discussion framework</p><h2 className="font-display mt-4 max-w-2xl text-3xl text-brand-purple sm:text-4xl">Start with what people need to understand.</h2><div className="mt-7 grid gap-4 md:grid-cols-3">{[{ title: "Questions", text: "What changes or constraints are people navigating?" }, { title: "Perspectives", text: "Whose experience would make the conversation more complete?" }, { title: "Possibilities", text: "What small next step could be explored, if participants agree?" }].map((item) => <article className="border-t-2 border-brand-purple/15 bg-brand-paper p-6" key={item.title}><h3 className="text-lg font-semibold text-brand-purple">{item.title}</h3><p className="mt-3 text-sm leading-6 text-brand-ink/70">{item.text}</p></article>)}</div></div></section>
-      <section className="bg-brand-purple py-14 text-white sm:py-18"><div className="mx-auto grid max-w-content gap-8 px-5 sm:px-8 md:grid-cols-2 md:gap-16"><div><p className="text-xs font-bold uppercase tracking-[0.18em] text-brand-teal">Entrepreneurship</p><h2 className="font-display mt-4 text-3xl sm:text-4xl">Useful information before assumptions.</h2></div><p className="text-base leading-7 text-white/75">No business advice, funding, mentorship, accelerator, or entrepreneurship programme has been verified for ECK. Visitors can ask about current activities or suggest an educational topic for the organization to consider.</p></div></section>
-      <section className="bg-brand-paper py-14 sm:py-18"><div className="mx-auto max-w-content px-5 sm:px-8"><p className="text-xs font-bold uppercase tracking-[0.18em] text-[#0e716b]">Possible collaboration questions · illustrative</p><div className="mt-6 grid gap-4 md:grid-cols-2"><article className="border border-brand-purple/10 bg-white p-6"><h2 className="text-lg font-semibold text-brand-purple">Shared learning</h2><p className="mt-3 text-sm leading-6 text-brand-ink/70">Could a conversation help people compare experiences around a topic? This is an example question, not a scheduled event.</p></article><article className="border border-brand-purple/10 bg-white p-6"><h2 className="text-lg font-semibold text-brand-purple">Community perspective</h2><p className="mt-3 text-sm leading-6 text-brand-ink/70">Could a local viewpoint inform how an issue is understood? Any involvement requires ECK and participant agreement.</p></article></div></div></section>
-      <section className="bg-white py-14 sm:py-18"><div className="mx-auto max-w-content px-5 sm:px-8"><div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between"><div><p className="text-xs font-bold uppercase tracking-[0.18em] text-[#0e716b]">Sample reading</p><h2 className="font-display mt-4 text-3xl text-brand-purple sm:text-4xl">Explore topics in the local data.</h2></div><span className="w-fit rounded-full border border-brand-purple/15 px-4 py-2 text-xs font-bold uppercase tracking-wider text-brand-purple">Examples only</span></div><div className="mt-6"><SampleContentNotice /></div><div className="mt-7 grid gap-4 md:grid-cols-3">{[{ title: "Export-led growth", category: "Economy", text: "A sample article topic on trade, productivity, and business competitiveness.", href: "/insights/future-export-led-growth-pakistan" }, { title: "Financial technology", category: "Finance", text: "An illustrative reading topic about digital banking and financial services.", href: "/insights/digital-transformation-banking-sector" }, { title: "Industry and development", category: "Development", text: "A sample topic for considering industrial cooperation and local enterprise.", href: "/insights/impact-cpec-phase-ii-industrialization" }].map((item) => <article className="flex flex-col border border-brand-purple/10 bg-brand-paper p-6" key={item.title}><p className="text-xs font-bold uppercase tracking-[0.14em] text-[#0e716b]">{item.category} · Sample</p><h3 className="mt-3 text-xl font-semibold text-brand-purple">{item.title}</h3><p className="mt-3 flex-1 text-sm leading-6 text-brand-ink/70">{item.text}</p><Link className="editorial-link mt-5 w-fit text-sm font-bold text-brand-purple underline" href={item.href}>Read sample article <span aria-hidden="true" className="ml-1">↗</span></Link></article>)}</div></div></section>
-      <section className="bg-brand-paper py-14 sm:py-18"><div className="mx-auto max-w-content px-5 sm:px-8"><p className="text-xs font-bold uppercase tracking-[0.18em] text-[#0e716b]">Illustrative discussion formats</p><h2 className="font-display mt-4 text-3xl text-brand-purple sm:text-4xl">Possible ways to exchange ideas.</h2><div className="mt-6"><SampleContentNotice /></div><div className="mt-6 grid gap-4 md:grid-cols-3">{[{ title: "Market questions", text: "A sample roundtable outline for comparing sector questions and identifying what information is missing." }, { title: "Founder perspectives", text: "An illustrative peer conversation about early-stage business challenges and lessons learned." }, { title: "Research to practice", text: "A possible format for discussing how published economic research relates to business decisions." }].map((item) => <article className="border-t-2 border-brand-purple/15 bg-white p-6" key={item.title}><span className="text-xs font-bold uppercase tracking-[0.14em] text-[#0e716b]">Discussion concept</span><h3 className="mt-3 text-lg font-semibold text-brand-purple">{item.title}</h3><p className="mt-3 text-sm leading-6 text-brand-ink/70">{item.text}</p></article>)}</div><p className="mt-5 text-xs text-brand-ink/55">These are content examples, not confirmed ECK events, advice, funding, or services.</p></div></section>
-      <div className="mx-auto max-w-content px-5 py-14 sm:px-8 sm:py-18"><FaqAccordion items={[{ question: "Does ECK offer business advice or funding?", answer: "No such service, funding offer, or policy has been verified. Please contact ECK for current information." }, { question: "Can I propose a business or entrepreneurship discussion?", answer: "Yes. You can send an idea for ECK to review; submission does not guarantee that an activity will be arranged." }]} /></div>
-      <section className="bg-white py-14 sm:py-18"><div className="mx-auto grid max-w-content gap-8 px-5 sm:px-8 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16"><div><p className="text-xs font-bold uppercase tracking-[0.18em] text-[#0e716b]">Engage with ECK</p><h2 className="font-display mt-4 text-3xl text-brand-purple">Share a topic or question.</h2><Link className="editorial-link mt-5 inline-flex text-sm font-bold text-brand-purple underline" href="/contact?topic=partnership#inquiry">Partnership enquiry <span aria-hidden="true" className="ml-2">↗</span></Link></div><InquiryForm defaultPurpose="partnership" /></div></section>
+      <PageHero
+        breadcrumbs={[{ label: "Business & entrepreneurship" }]}
+        description="A place to explore possible connections between business, entrepreneurship, and community life, without assuming a confirmed ECK programme."
+        eyebrow="Business & entrepreneurship"
+        title="Bring a question worth discussing."
+      />
+      <ScrollReveal>
+        <section className="bg-brand-paper py-14 sm:py-20">
+          <div className="mx-auto grid max-w-content gap-8 px-5 sm:px-8 md:grid-cols-2 md:gap-16" data-reveal>
+            <SectionHeading eyebrow="Introduction" size="md" title="A local ecosystem has many voices." />
+            <p className="text-base leading-7 text-brand-ink/70">
+              ECK&apos;s confirmed business activities and entrepreneurship support have not been provided. This page
+              presents questions people may bring to the organization, not a list of ECK offers.
+            </p>
+          </div>
+        </section>
+
+        <section className="bg-white py-14 sm:py-20">
+          <div className="mx-auto max-w-content px-5 sm:px-8" data-reveal>
+            <SectionHeading
+              eyebrow="Business ecosystem · discussion framework"
+              size="md"
+              title="Start with what people need to understand."
+            />
+            <div className="mt-7 grid gap-4 md:grid-cols-3">
+              {framework.map((step) => (
+                <article className="border-t-2 border-brand-purple/15 bg-brand-paper p-6" key={step.title}>
+                  <h3 className="font-display text-lg leading-snug text-brand-purple">{step.title}</h3>
+                  <p className="mt-3 text-sm leading-6 text-brand-ink/70">{step.text}</p>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="mesh-dark grain relative overflow-hidden py-14 text-white sm:py-20">
+          <div className="relative mx-auto grid max-w-content gap-8 px-5 sm:px-8 md:grid-cols-2 md:gap-16" data-reveal>
+            <div>
+              <Eyebrow tone="dark">Entrepreneurship</Eyebrow>
+              <h2 className="font-display mt-4 text-3xl leading-[1.1] sm:text-4xl">
+                Useful information before assumptions.
+              </h2>
+            </div>
+            <p className="text-base leading-7 text-white/72">
+              No business advice, funding, mentorship, accelerator, or entrepreneurship programme has been verified for
+              ECK. Visitors can ask about current activities or suggest an educational topic for the organization to
+              consider.
+            </p>
+          </div>
+        </section>
+
+        <section className="bg-brand-paper py-14 sm:py-20">
+          <div className="mx-auto max-w-content px-5 sm:px-8" data-reveal>
+            <Eyebrow>Possible collaboration questions · illustrative</Eyebrow>
+            <div className="mt-6 grid gap-4 md:grid-cols-2">
+              {collaborations.map((item) => (
+                <Card className="p-6" key={item.title}>
+                  <h2 className="font-display text-lg leading-snug text-brand-purple">{item.title}</h2>
+                  <p className="mt-3 text-sm leading-6 text-brand-ink/70">{item.text}</p>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="bg-brand-paper-dark py-14 sm:py-20">
+          <div className="mx-auto max-w-content px-5 sm:px-8" data-reveal>
+            <SectionHeading
+              actions={<Badge square>Examples only</Badge>}
+              eyebrow="Sample reading"
+              size="md"
+              title="Explore topics in the local data."
+            />
+            <div className="mt-6">
+              <SampleContentNotice />
+            </div>
+            <div className="mt-7 grid gap-4 md:grid-cols-3">
+              {sampleReadings.map((item) => (
+                <ContentCard
+                  description={item.text}
+                  headingLevel={3}
+                  href={item.href}
+                  key={item.title}
+                  linkLabel="Read sample article"
+                  meta={`${item.category} · Sample`}
+                  title={item.title}
+                />
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="bg-white py-14 sm:py-20">
+          <div className="mx-auto max-w-content px-5 sm:px-8" data-reveal>
+            <SectionHeading
+              eyebrow="Illustrative discussion formats"
+              size="md"
+              title="Possible ways to exchange ideas."
+            />
+            <div className="mt-6">
+              <SampleContentNotice />
+            </div>
+            <div className="mt-6 grid gap-4 md:grid-cols-3">
+              {formats.map((item) => (
+                <article className="border-t-2 border-brand-purple/15 bg-brand-paper p-6" key={item.title}>
+                  <Eyebrow>Discussion concept</Eyebrow>
+                  <h3 className="font-display mt-3 text-lg leading-snug text-brand-purple">{item.title}</h3>
+                  <p className="mt-3 text-sm leading-6 text-brand-ink/70">{item.text}</p>
+                </article>
+              ))}
+            </div>
+            <p className="mt-5 text-xs text-brand-ink/55">
+              These are content examples, not confirmed ECK events, advice, funding, or services.
+            </p>
+          </div>
+        </section>
+
+        <section className="bg-brand-paper py-14 sm:py-20">
+          <div className="mx-auto max-w-content px-5 sm:px-8" data-reveal>
+            <FaqAccordion items={faqs} />
+          </div>
+        </section>
+
+        <section className="bg-white py-14 sm:py-20">
+          <div
+            className="mx-auto grid max-w-content gap-8 px-5 sm:px-8 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16"
+            data-reveal
+          >
+            <div>
+              <SectionHeading eyebrow="Engage with ECK" size="md" title="Share a topic or question." />
+              <Link
+                className="editorial-link mt-5 inline-flex text-sm font-bold text-brand-purple"
+                href="/contact?topic=partnership#inquiry"
+              >
+                Partnership enquiry <span aria-hidden="true" className="ml-2">↗</span>
+              </Link>
+            </div>
+            <InquiryForm defaultPurpose="partnership" />
+          </div>
+        </section>
+      </ScrollReveal>
     </>
   );
 }
