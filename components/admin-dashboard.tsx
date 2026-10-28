@@ -1,16 +1,33 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { AdminRecordForm } from "./admin/admin-record-form";
+import { EmptyState } from "@/components/public/empty-state";
+import { Badge, type BadgeTone } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Eyebrow } from "@/components/ui/eyebrow";
+import { Input, Select } from "@/components/ui/field";
+import { LoadingState } from "@/components/ui/loading-state";
 
 type ContentTab = "services" | "events" | "articles" | "gallery";
 type AdminTab = ContentTab | "inquiries" | "applications" | "settings";
+type SubmissionTab = "inquiries" | "applications";
 type AdminRecord = Record<string, unknown> & { id?: string };
 type ApiResult = { data: unknown; error: { message: string } | null };
 type ListResult = { items: AdminRecord[]; page: number; pages: number; total: number };
+type Notice = { tone: "success" | "error"; message: string };
 
 const contentTabs: ContentTab[] = ["services", "events", "articles", "gallery"];
 const adminTabs: AdminTab[] = [...contentTabs, "inquiries", "applications", "settings"];
+const tabLabels: Record<AdminTab, string> = {
+  services: "Services",
+  events: "Events",
+  articles: "Articles",
+  gallery: "Gallery",
+  inquiries: "Inquiries",
+  applications: "Applications",
+  settings: "Site settings",
+};
 const endpoint: Record<AdminTab, string> = {
   services: "/api/admin/services",
   events: "/api/admin/events",
@@ -26,13 +43,13 @@ const newContent: Record<ContentTab, AdminRecord> = {
   articles: { title: "", slug: "", excerpt: "", body: "", category: "", tags: [], published: false, archived: false },
   gallery: { title: "", slug: "", description: "", category: "", images: [], published: false, archived: false },
 };
-const statusOptions: Record<"inquiries" | "applications", string[]> = {
+const statusOptions: Record<SubmissionTab, string[]> = {
   inquiries: ["new", "in_progress", "responded", "closed"],
   applications: ["new", "reviewing", "accepted", "declined", "closed"],
 };
 
 export function AdminDashboard({ email, role }: { email: string; role: "admin" | "editor" }) {
-  const allowedTabs = useMemo(() => role === "admin" ? adminTabs : contentTabs, [role]);
+  const allowedTabs = useMemo<AdminTab[]>(() => (role === "admin" ? adminTabs : contentTabs), [role]);
   const [tab, setTab] = useState<AdminTab>("services");
   const [records, setRecords] = useState<AdminRecord[]>([]);
   const [page, setPage] = useState(1);
@@ -41,119 +58,158 @@ export function AdminDashboard({ email, role }: { email: string; role: "admin" |
   const [selected, setSelected] = useState<AdminRecord | null>(null);
   const [loading, setLoading] = useState(true);
   const [pending, setPending] = useState(false);
-  const [notice, setNotice] = useState("");
+  const [notice, setNotice] = useState<Notice | null>(null);
+  const [loadError, setLoadError] = useState("");
   const [query, setQuery] = useState("");
   const [submittedQuery, setSubmittedQuery] = useState("");
   const [refresh, setRefresh] = useState(0);
 
-  const loadRecords = useCallback(async () => {
-    setLoading(true);
-    setNotice("");
-    try {
-      const params = new URLSearchParams({ page: String(page), limit: "20" });
-      if (submittedQuery && tab !== "settings") params.set("q", submittedQuery);
-      const response = await fetch(tab === "settings" ? endpoint.settings : `${endpoint[tab]}?${params}`, { cache: "no-store" });
-      const body = await parseResponse(response);
-      if (tab === "settings") {
-        const settings = asRecord(body.data) ?? {};
-        setRecords([settings]);
-        setPages(1);
-        setTotal(1);
-      } else {
+  const mountedRef = useRef(true);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  const loadRecords = useCallback(
+    async (signal: AbortSignal) => {
+      setLoading(true);
+      setLoadError("");
+      try {
+        const params = new URLSearchParams({ page: String(page), limit: "20" });
+        if (submittedQuery && tab !== "settings") params.set("q", submittedQuery);
+        const response = await fetch(
+          tab === "settings" ? endpoint.settings : `${endpoint[tab]}?${params}`,
+          { cache: "no-store", signal },
+        );
+        const body = await parseResponse(response);
+        if (signal.aborted) return;
+        if (tab === "settings") {
+          setRecords([asRecord(body.data) ?? {}]);
+          setPages(1);
+          setTotal(1);
+          return;
+        }
         const data = asRecord(body.data);
-        const result = data && asListResult(data);
+        const result = data ? asListResult(data) : null;
         if (!result) throw new Error("The server returned an unexpected list response.");
         setRecords(result.items);
         setPages(result.pages);
         setTotal(result.total);
+      } catch (error) {
+        if (signal.aborted) return;
+        setLoadError(errorMessage(error));
+        setRecords([]);
+        setPages(0);
+        setTotal(0);
+      } finally {
+        if (!signal.aborted) setLoading(false);
       }
-    } catch (error) {
-      setNotice(errorMessage(error));
-      setRecords([]);
-      setPages(0);
-      setTotal(0);
-    } finally {
-      setLoading(false);
-    }
-  }, [page, submittedQuery, tab]);
+    },
+    [page, submittedQuery, tab],
+  );
 
   useEffect(() => {
-    void loadRecords();
+    const controller = new AbortController();
+    void loadRecords(controller.signal);
+    return () => controller.abort();
   }, [loadRecords, refresh]);
+
+  const mutate = useCallback(async (work: () => Promise<string>): Promise<boolean> => {
+    setPending(true);
+    setNotice(null);
+    try {
+      const message = await work();
+      if (mountedRef.current) setNotice({ tone: "success", message });
+      return true;
+    } catch (error) {
+      if (mountedRef.current) setNotice({ tone: "error", message: errorMessage(error) });
+      return false;
+    } finally {
+      if (mountedRef.current) setPending(false);
+    }
+  }, []);
+
+  const initialData = useMemo<AdminRecord>(() => {
+    if (selected) return withoutServerFields(selected);
+    if (tab === "settings") return records[0] ?? {};
+    return contentTabs.includes(tab as ContentTab) ? newContent[tab as ContentTab] : {};
+  }, [records, selected, tab]);
+
+  const isContent = contentTabs.includes(tab as ContentTab);
+  const statuses = tab === "inquiries" || tab === "applications" ? statusOptions[tab] : null;
 
   function createNew() {
     if (!contentTabs.includes(tab as ContentTab)) return;
     setSelected(null);
-    setNotice("");
+    setNotice(null);
+  }
+
+  function selectTab(next: AdminTab) {
+    setTab(next);
+    setPage(1);
+    setSelected(null);
+    setNotice(null);
+    setLoadError("");
   }
 
   function selectRecord(record: AdminRecord) {
     setSelected(record);
-    setNotice("");
+    setNotice(null);
+  }
+
+  function submitSearch(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setPage(1);
+    setSubmittedQuery(query.trim());
   }
 
   async function saveRecord(payload: AdminRecord) {
-    setPending(true);
-    setNotice("");
-    try {
-      if (!asRecord(payload)) throw new Error("The content must be a JSON object.");
-      const settingsEdit = tab === "settings";
-      const url = selected?.id ? `${endpoint[tab]}/${encodeURIComponent(selected.id)}` : endpoint[tab];
-      const response = await fetch(url, {
-        method: settingsEdit || selected?.id ? "PATCH" : "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      await parseResponse(response);
-      setNotice(selected?.id ? "Changes saved." : "Content created.");
+    if (!asRecord(payload)) {
+      setNotice({ tone: "error", message: "The content must be a JSON object." });
+      return;
+    }
+    const id = selected?.id;
+    const url = id ? `${endpoint[tab]}/${encodeURIComponent(id)}` : endpoint[tab];
+    const method = tab === "settings" || id ? "PATCH" : "POST";
+    const updated = await mutate(async () => {
+      await sendJson(method, url, payload);
+      return id ? "Changes saved." : "Content created.";
+    });
+    if (updated && mountedRef.current) {
       setSelected(null);
       setRefresh((value) => value + 1);
-    } catch (error) {
-      setNotice(errorMessage(error));
-    } finally {
-      setPending(false);
     }
   }
 
   async function patchRecord(record: AdminRecord, patch: AdminRecord, successMessage: string) {
-    if (!record.id) return;
-    setPending(true);
-    setNotice("");
-    try {
-      const response = await fetch(`${endpoint[tab]}/${encodeURIComponent(record.id)}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(patch),
-      });
-      await parseResponse(response);
-      setNotice(successMessage);
-      setSelected((value) => value?.id === record.id ? { ...value, ...patch } : value);
+    const recordId = record.id;
+    if (!recordId) return;
+    const updated = await mutate(async () => {
+      await sendJson("PATCH", `${endpoint[tab]}/${encodeURIComponent(recordId)}`, patch);
+      return successMessage;
+    });
+    if (updated && mountedRef.current) {
+      setSelected((value) => (value?.id === recordId ? { ...value, ...patch } : value));
       setRefresh((value) => value + 1);
-    } catch (error) {
-      setNotice(errorMessage(error));
-    } finally {
-      setPending(false);
     }
   }
 
   async function deleteRecord(record: AdminRecord) {
-    if (!record.id || !window.confirm(`Permanently delete ${displayTitle(record)}?`)) return;
-    setPending(true);
-    setNotice("");
-    try {
-      await parseResponse(await fetch(`${endpoint[tab]}/${encodeURIComponent(record.id)}`, { method: "DELETE" }));
-      setNotice("Record deleted.");
+    const recordId = record.id;
+    if (!recordId || !window.confirm(`Permanently delete ${displayTitle(record)}?`)) return;
+    const deleted = await mutate(async () => {
+      await sendJson("DELETE", `${endpoint[tab]}/${encodeURIComponent(recordId)}`);
+      return "Record deleted.";
+    });
+    if (deleted && mountedRef.current) {
       setSelected(null);
       setRefresh((value) => value + 1);
-    } catch (error) {
-      setNotice(errorMessage(error));
-    } finally {
-      setPending(false);
     }
   }
 
   async function changeSubmissionStatus(record: AdminRecord, status: string) {
-    if (!record.id) return;
     await patchRecord(record, { status }, "Submission status updated.");
   }
 
@@ -163,229 +219,375 @@ export function AdminDashboard({ email, role }: { email: string; role: "admin" |
       await parseResponse(await fetch("/api/admin/session", { method: "DELETE" }));
       window.location.assign("/admin");
     } catch (error) {
-      setNotice(errorMessage(error));
-      setPending(false);
+      if (mountedRef.current) {
+        setNotice({ tone: "error", message: errorMessage(error) });
+        setPending(false);
+      }
     }
   }
 
-  const isContent = contentTabs.includes(tab as ContentTab);
-  return (
-    <section className="mx-auto max-w-content px-5 py-12 sm:px-8">
-      <header className="flex flex-wrap items-center justify-between gap-5 border-b border-brand-purple/15 pb-8">
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-brand-teal">Administration Portal</p>
-          <h1 className="mt-2 text-4xl font-bold tracking-tight text-brand-purple">ECK Dashboard</h1>
-          <div className="mt-3 flex items-center gap-2">
-            <div className="h-2 w-2 rounded-full bg-brand-green animate-pulse" />
-            <p className="text-sm font-medium text-brand-ink/65">Signed in as <span className="text-brand-purple">{email}</span> · <span className="capitalize">{role}</span></p>
-          </div>
+  const listPane = loading ? (
+    <div className="space-y-3" aria-busy="true">
+      <LoadingState label={`Loading ${tabLabels[tab].toLowerCase()}…`} />
+      {[0, 1, 2].map((index) => (
+        <div className="h-28 animate-pulse border border-brand-purple/10 bg-brand-paper-dark" key={index} />
+      ))}
+    </div>
+  ) : loadError ? (
+    <div className="border border-red-200 bg-red-50 p-8 text-center">
+      <p className="text-sm font-semibold text-red-800">{loadError}</p>
+      <Button className="mt-4" onClick={() => setRefresh((value) => value + 1)} type="button" variant="outline">
+        Try again
+      </Button>
+    </div>
+  ) : records.length === 0 ? (
+    <div className="space-y-4">
+      <EmptyState
+        description="Records you add will appear here once they are saved."
+        title={`No ${tabLabels[tab].toLowerCase()} yet`}
+      />
+      {isContent && (
+        <div className="flex justify-center">
+          <Button onClick={createNew} type="button" variant="dark">
+            Create your first {singular(tab as ContentTab)}
+          </Button>
         </div>
-        <button 
-          className="min-h-11 rounded-sm border border-brand-purple/20 px-6 text-sm font-bold text-brand-purple transition-all hover:bg-brand-purple hover:text-white disabled:opacity-50" 
-          disabled={pending} 
-          onClick={() => void signOut()} 
-          type="button"
-        >
-          Sign out
-        </button>
-      </header>
-      
-      <nav aria-label="Admin sections" className="mt-8 flex flex-wrap gap-2">
-        {allowedTabs.map((item) => (
-          <button 
-            aria-current={tab === item ? "page" : undefined} 
-            className={`group relative overflow-hidden rounded-full border px-6 py-2.5 text-xs font-bold uppercase tracking-widest transition-all ${
-              tab === item 
-                ? "border-brand-purple bg-brand-purple text-white shadow-lg shadow-brand-purple/20" 
-                : "border-brand-purple/15 text-brand-ink/70 hover:border-brand-purple/40 hover:text-brand-purple"
-            }`} 
-            key={item} 
-            onClick={() => { setTab(item); setPage(1); setSelected(null); setNotice(""); }} 
+      )}
+    </div>
+  ) : (
+    <div className="space-y-3">
+      {records.map((record) => renderRecord(record))}
+    </div>
+  );
+
+  const pagination = pages > 1 && (
+    <nav aria-label="Pagination" className="flex items-center justify-between border-t border-brand-purple/10 pt-6">
+      <Button
+        disabled={page <= 1 || loading}
+        onClick={() => setPage((value) => value - 1)}
+        size="sm"
+        type="button"
+        variant="ghost"
+      >
+        ← Previous
+      </Button>
+      <span className="text-xs font-bold uppercase tracking-widest text-brand-ink/60">
+        Page {page} of {pages}
+      </span>
+      <Button
+        disabled={page >= pages || loading}
+        onClick={() => setPage((value) => value + 1)}
+        size="sm"
+        type="button"
+        variant="ghost"
+      >
+        Next →
+      </Button>
+    </nav>
+  );
+
+  const editor = (
+    <div className="border border-brand-purple/10 bg-white">
+      <div className="flex items-center justify-between gap-3 bg-brand-purple px-5 py-4 text-white">
+        <h2 className="text-sm font-bold uppercase tracking-wider">
+          {tab === "settings"
+            ? "Public settings"
+            : selected
+              ? `Edit ${singular(tab as ContentTab)}`
+              : `New ${singular(tab as ContentTab)}`}
+        </h2>
+        {isContent && selected && (
+          <button
+            className="text-[11px] font-bold uppercase tracking-widest text-white/70 transition-colors hover:text-white hover:underline"
+            onClick={createNew}
             type="button"
           >
-            {item === "settings" ? "Site Settings" : item}
+            Clear
           </button>
-        ))}
-      </nav>
-      <div className="mt-8 flex flex-wrap items-center justify-between gap-6 bg-brand-paper/50 p-4 rounded-sm border border-brand-purple/5">
-        <div>
-          <h2 className="text-xl font-bold uppercase tracking-tight text-brand-purple">{tab === "settings" ? "Site Settings" : tab}</h2>
-          <p className="mt-1 text-xs font-bold text-brand-ink/50 uppercase tracking-widest">{total} record{total === 1 ? "" : "s"} found</p>
+        )}
+      </div>
+      <div className="p-5 sm:p-6">
+        <AdminRecordForm
+          isPending={pending}
+          initialData={initialData}
+          key={`${tab}-${selected?.id ?? "new"}`}
+          onCancel={isContent && selected ? () => setSelected(null) : undefined}
+          onSave={saveRecord}
+          tab={tab === "settings" ? "settings" : (tab as ContentTab)}
+        />
+      </div>
+    </div>
+  );
+
+  return (
+    <>
+      <header className="mesh-dark grain relative text-white">
+        <div className="mx-auto flex max-w-content flex-wrap items-center justify-between gap-6 px-5 py-10 sm:px-8">
+          <div>
+            <Eyebrow tone="dark">Administration portal</Eyebrow>
+            <h1 className="font-display mt-3 text-3xl leading-[1.1] sm:text-4xl">ECK Dashboard</h1>
+            <p className="mt-3 flex flex-wrap items-center gap-2 text-sm text-white/70">
+              <span aria-hidden="true" className="h-2 w-2 rounded-sm bg-brand-teal" />
+              <span>
+                Signed in as <span className="font-semibold text-white">{email}</span>
+              </span>
+              <span aria-hidden="true">·</span>
+              <span className="capitalize">{role}</span>
+            </p>
+          </div>
+          <Button disabled={pending} onClick={() => void signOut()} type="button" variant="onDark">
+            Sign out
+          </Button>
         </div>
-        <div className="flex flex-wrap items-center gap-4">
-          {tab !== "settings" && (
-            <form className="flex items-center" onSubmit={(event) => { event.preventDefault(); setPage(1); setSubmittedQuery(query.trim()); }}>
-              <label className="sr-only" htmlFor="admin-search">Search records</label>
-              <div className="relative">
-                <input 
-                  className="min-h-11 w-64 border border-brand-purple/20 bg-white pl-10 pr-4 text-sm transition-all focus:border-brand-teal focus:ring-1 focus:ring-brand-teal" 
-                  id="admin-search" 
-                  onChange={(event) => setQuery(event.target.value)} 
-                  placeholder="Search records..." 
-                  value={query} 
-                />
-                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-brand-ink/40">
-                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" /></svg>
-                </div>
-              </div>
-              <button className="ml-2 min-h-11 bg-brand-purple px-6 text-xs font-bold uppercase tracking-widest text-white transition-all hover:bg-brand-purple/90" type="submit">Search</button>
-            </form>
-          )}
-          {isContent && (
-            <button 
-              className="min-h-11 rounded-sm bg-brand-teal px-6 text-xs font-bold uppercase tracking-widest text-white shadow-lg shadow-brand-teal/20 transition-all hover:bg-brand-teal/90" 
-              onClick={createNew} 
+      </header>
+
+      <div className="mx-auto max-w-content px-5 py-14 sm:px-8 sm:py-20">
+        <nav aria-label="Admin sections" className="flex flex-wrap gap-px border border-brand-purple/10 bg-brand-purple/10">
+          {allowedTabs.map((item) => (
+            <button
+              aria-current={tab === item ? "page" : undefined}
+              className={`min-h-11 px-5 text-xs font-bold uppercase tracking-widest transition-colors ${
+                tab === item
+                  ? "bg-brand-purple text-white"
+                  : "bg-white text-brand-ink/70 hover:bg-brand-paper hover:text-brand-purple"
+              }`}
+              key={item}
+              onClick={() => selectTab(item)}
               type="button"
             >
-              Add {singular(tab as ContentTab)}
+              {tabLabels[item]}
             </button>
-          )}
-        </div>
-      </div>
-      {notice && <p aria-live="polite" className="mt-5 border-l-2 border-brand-teal bg-white p-4 text-sm text-brand-ink" role="status">{notice}</p>}
-      <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_400px] xl:grid-cols-[1fr_450px]">
-        <div className="space-y-4">
-          {loading ? (
-            <div className="flex flex-col gap-3">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="h-32 w-full animate-pulse bg-brand-purple/5 rounded-sm" />
-              ))}
+          ))}
+        </nav>
+
+        {notice && (
+          <p
+            aria-live="polite"
+            className={`mt-6 border-l-2 p-4 text-sm ${
+              notice.tone === "error"
+                ? "border-red-500 bg-red-50 text-red-800"
+                : "border-brand-teal bg-white text-brand-ink"
+            }`}
+            role="status"
+          >
+            {notice.message}
+          </p>
+        )}
+
+        {tab === "settings" ? (
+          <div className="mx-auto mt-8 max-w-2xl">
+            {loading ? <LoadingState label="Loading site settings…" /> : editor}
+          </div>
+        ) : (
+          <>
+            <div className="mt-8 flex flex-wrap items-center justify-between gap-4 border border-brand-purple/10 bg-brand-paper px-4 py-3 sm:px-5">
+              <div>
+                <h2 className="font-display text-xl leading-tight text-brand-purple">{tabLabels[tab]}</h2>
+                <p className="mt-1 text-xs font-semibold uppercase tracking-widest text-brand-ink/50">
+                  {total} record{total === 1 ? "" : "s"}
+                </p>
+              </div>
+              <div className="flex flex-wrap items-center gap-3">
+                <form className="flex items-stretch gap-2" onSubmit={submitSearch}>
+                  <label className="sr-only" htmlFor="admin-search">
+                    Search records
+                  </label>
+                  <div className="w-56">
+                    <Input
+                      id="admin-search"
+                      onChange={(event) => setQuery(event.target.value)}
+                      placeholder={`Search ${tabLabels[tab].toLowerCase()}…`}
+                      type="search"
+                      value={query}
+                    />
+                  </div>
+                  <Button type="submit" variant="outline">
+                    Search
+                  </Button>
+                </form>
+                {isContent && (
+                  <Button onClick={createNew} type="button" variant="primary">
+                    Add {singular(tab as ContentTab)}
+                  </Button>
+                )}
+              </div>
             </div>
-          ) : records.length === 0 ? (
-            <div className="flex flex-col items-center justify-center border border-brand-purple/10 bg-white p-12 text-center">
-              <p className="text-sm text-brand-ink/70">No records found in {tab}.</p>
-              {isContent && (
-                <button 
-                  onClick={createNew}
-                  className="mt-4 text-sm font-bold text-brand-purple underline"
+
+            <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_400px] xl:grid-cols-[1fr_440px]">
+              <div className="space-y-4">
+                {listPane}
+                {pagination}
+              </div>
+              <aside className="lg:sticky lg:top-8 lg:h-fit">{editor}</aside>
+            </div>
+          </>
+        )}
+      </div>
+    </>
+  );
+
+  function renderRecord(record: AdminRecord) {
+    const selectedRow = selected?.id === record.id;
+    const contactLine = [
+      typeof record.email === "string" ? record.email : null,
+      typeof record.phone === "string" && record.phone ? record.phone : null,
+    ]
+      .filter(Boolean)
+      .join(" · ");
+    const createdAt = typeof record.createdAt === "string" ? new Date(record.createdAt) : null;
+
+    return (
+      <article
+        className={`group border bg-white transition-colors ${
+          selectedRow ? "border-brand-teal ring-1 ring-brand-teal" : "border-brand-purple/10 hover:border-brand-purple/25"
+        }`}
+        key={record.id ?? JSON.stringify(record)}
+      >
+        <div className="space-y-3 p-5">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            {isContent ? (
+              <button className="min-w-0 flex-1 text-left" onClick={() => selectRecord(record)} type="button">
+                <h3 className="font-display text-lg leading-6 text-brand-purple transition-colors group-hover:text-brand-teal">
+                  {displayTitle(record)}
+                </h3>
+                {recordSubtitle(record) && (
+                  <p className="mt-1 truncate text-xs text-brand-ink/60">{recordSubtitle(record)}</p>
+                )}
+              </button>
+            ) : (
+              <div className="min-w-0 flex-1">
+                <h3 className="font-display text-lg leading-6 text-brand-purple">{displayTitle(record)}</h3>
+                {recordSubtitle(record) && (
+                  <p className="mt-1 truncate text-xs text-brand-ink/60">{recordSubtitle(record)}</p>
+                )}
+              </div>
+            )}
+            <div className="flex flex-wrap items-center gap-2">
+              {typeof record.published === "boolean" && (
+                <ToggleBadge
+                  active={record.published}
+                  disabled={pending}
+                  onClick={() =>
+                    void patchRecord(
+                      record,
+                      { published: !record.published },
+                      `Content ${record.published ? "unpublished" : "published"}.`,
+                    )
+                  }
+                  toneOn="green"
                 >
-                  Create your first {singular(tab as ContentTab)}
+                  {record.published ? "Published" : "Draft"}
+                </ToggleBadge>
+              )}
+              {typeof record.archived === "boolean" && (
+                <ToggleBadge
+                  active={record.archived}
+                  disabled={pending}
+                  onClick={() =>
+                    void patchRecord(
+                      record,
+                      { archived: !record.archived },
+                      `Content ${record.archived ? "unarchived" : "archived"}.`,
+                    )
+                  }
+                  toneOn="danger"
+                >
+                  {record.archived ? "Archived" : "Active"}
+                </ToggleBadge>
+              )}
+              {statuses && (
+                <div className="relative w-44">
+                  <Select
+                    aria-label={`Update status for ${displayTitle(record)}`}
+                    disabled={pending}
+                    onChange={(event) => void changeSubmissionStatus(record, event.target.value)}
+                    value={String(record.status ?? "new")}
+                  >
+                    {statuses.map((status) => (
+                      <option key={status} value={status}>
+                        {status.replace("_", " ").toUpperCase()}
+                      </option>
+                    ))}
+                  </Select>
+                  <span
+                    aria-hidden="true"
+                    className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-brand-ink/50"
+                  >
+                    ▾
+                  </span>
+                </div>
+              )}
+              {(isContent || statuses) && (
+                <button
+                  className="transition-opacity hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
+                  disabled={pending}
+                  onClick={() => void deleteRecord(record)}
+                  type="button"
+                >
+                  <Badge square tone="danger">
+                    Delete
+                  </Badge>
                 </button>
               )}
             </div>
-          ) : (
-            <div className="grid gap-4">
-              {records.map((record) => (
-                <article 
-                  className={`group relative border bg-white p-5 transition-all hover:shadow-md ${selected?.id === record.id ? "border-brand-teal ring-1 ring-brand-teal" : "border-brand-purple/10"}`} 
-                  key={record.id ?? JSON.stringify(record)}
-                >
-                  <div className="flex flex-wrap items-start justify-between gap-4">
-                    <button className="text-left group-hover:cursor-pointer" onClick={() => selectRecord(record)} type="button">
-                      <h3 className="font-semibold text-brand-purple group-hover:text-brand-teal transition-colors">{displayTitle(record)}</h3>
-                      <p className="mt-1 text-xs text-brand-ink/60">{record.slug ? String(record.slug) : record.email ? String(record.email) : record.createdAt ? new Date(String(record.createdAt)).toLocaleString() : ""}</p>
-                    </button>
-                    <div className="flex flex-wrap items-center gap-3">
-                      {record.published !== undefined && (
-                        <button 
-                          className={`text-xs font-bold px-2 py-1 rounded-full border transition-colors ${record.published ? "bg-brand-green/10 border-brand-green/20 text-brand-green" : "bg-brand-ink/5 border-brand-ink/10 text-brand-ink/60"}`}
-                          disabled={pending} 
-                          onClick={() => void patchRecord(record, { published: !record.published }, `Content ${record.published ? "unpublished" : "published"}.`)} 
-                          type="button"
-                        >
-                          {record.published ? "Published" : "Draft"}
-                        </button>
-                      )}
-                      {record.archived !== undefined && (
-                        <button 
-                          className={`text-xs font-bold px-2 py-1 rounded-full border transition-colors ${record.archived ? "bg-red-50 border-red-100 text-red-600" : "bg-brand-ink/5 border-brand-ink/10 text-brand-ink/60"}`}
-                          disabled={pending} 
-                          onClick={() => void patchRecord(record, { archived: !record.archived }, `Content ${record.archived ? "unarchived" : "archived"}.`)} 
-                          type="button"
-                        >
-                          {record.archived ? "Archived" : "Active"}
-                        </button>
-                      )}
-                      {statusOptions[tab as "inquiries" | "applications"] && (
-                        <select 
-                          aria-label={`Update status for ${displayTitle(record)}`} 
-                          className="border border-brand-purple/15 bg-white px-2 py-1 text-xs font-medium focus:border-brand-teal focus:outline-none" 
-                          disabled={pending} 
-                          onChange={(event) => void changeSubmissionStatus(record, event.target.value)} 
-                          value={String(record.status ?? "new")}
-                        >
-                          {statusOptions[tab as "inquiries" | "applications"].map((status) => (
-                            <option key={status} value={status}>{status.replace("_", " ").toUpperCase()}</option>
-                          ))}
-                        </select>
-                      )}
-                      {(isContent || tab === "inquiries" || tab === "applications") && (
-                        <button 
-                          className="text-xs font-bold text-red-700 hover:bg-red-50 px-2 py-1 rounded transition-colors" 
-                          disabled={pending} 
-                          onClick={() => void deleteRecord(record)} 
-                          type="button"
-                        >
-                          Delete
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                  {typeof record.summary === "string" && record.summary && <p className="mt-3 text-sm leading-6 text-brand-ink/70 line-clamp-2">{record.summary}</p>}
-                  {typeof record.message === "string" && record.message && <p className="mt-3 whitespace-pre-line text-sm leading-6 text-brand-ink/70 line-clamp-3">{record.message}</p>}
-                  <div className="mt-4 flex flex-wrap items-center gap-4 border-t border-brand-purple/5 pt-3">
-                    {typeof record.email === "string" && <p className="text-xs text-brand-ink/60 font-medium">{record.email}{typeof record.phone === "string" && record.phone ? ` · ${record.phone}` : ""}</p>}
-                    {typeof record.createdAt === "string" && <p className="text-xs text-brand-ink/40">Received: {new Date(record.createdAt).toLocaleDateString()}</p>}
-                  </div>
-                </article>
-              ))}
-            </div>
+          </div>
+
+          {typeof record.summary === "string" && record.summary && (
+            <p className="line-clamp-2 text-sm leading-6 text-brand-ink/70">{record.summary}</p>
           )}
-          {pages > 1 && (
-            <div className="flex items-center justify-between border-t border-brand-purple/10 py-6">
-              <button 
-                className="text-sm font-bold text-brand-purple hover:text-brand-teal disabled:opacity-30 transition-colors" 
-                disabled={page <= 1 || loading} 
-                onClick={() => setPage((value) => value - 1)} 
-                type="button"
-              >
-                ← Previous
-              </button>
-              <span className="text-xs font-bold uppercase tracking-widest text-brand-ink/60">Page {page} of {pages}</span>
-              <button 
-                className="text-sm font-bold text-brand-purple hover:text-brand-teal disabled:opacity-30 transition-colors" 
-                disabled={page >= pages || loading} 
-                onClick={() => setPage((value) => value + 1)} 
-                type="button"
-              >
-                Next →
-              </button>
+          {typeof record.message === "string" && record.message && (
+            <p className="line-clamp-3 whitespace-pre-line text-sm leading-6 text-brand-ink/70">{record.message}</p>
+          )}
+
+          {(contactLine || createdAt) && (
+            <div className="flex flex-wrap items-center gap-4 border-t border-brand-purple/5 pt-3">
+              {contactLine && <p className="text-xs font-medium text-brand-ink/60">{contactLine}</p>}
+              {createdAt && <p className="text-xs text-brand-ink/45">Received {createdAt.toLocaleDateString()}</p>}
             </div>
           )}
         </div>
+      </article>
+    );
+  }
+}
 
-        <aside className="relative">
-          {(isContent || tab === "settings") && (
-            <div className="sticky top-8 h-fit border border-brand-purple/10 bg-white shadow-sm overflow-hidden">
-              <div className="flex items-center justify-between bg-brand-purple p-4 text-white">
-                <h3 className="text-sm font-bold uppercase tracking-wider">
-                  {tab === "settings" ? "Public settings" : selected ? `Edit ${singular(tab as ContentTab)}` : `New ${singular(tab as ContentTab)}`}
-                </h3>
-                {selected && (
-                  <button 
-                    className="text-[10px] font-bold uppercase tracking-widest bg-white/10 hover:bg-white/20 px-2 py-1 transition-colors" 
-                    onClick={createNew} 
-                    type="button"
-                  >
-                    Clear
-                  </button>
-                )}
-              </div>
-              <div className="p-5">
-                <AdminRecordForm
-                  key={`${tab}-${selected?.id || "new"}`}
-                  tab={tab === "settings" ? "settings" : (tab as ContentTab)}
-                  initialData={selected ? withoutServerFields(selected) : (tab === "settings" ? records[0] || {} : newContent[tab as ContentTab])}
-                  onSave={saveRecord}
-                  onCancel={selected ? () => setSelected(null) : undefined}
-                  isPending={pending}
-                />
-              </div>
-            </div>
-          )}
-        </aside>
-      </div>
-    </section>
+function ToggleBadge({
+  active,
+  children,
+  disabled,
+  onClick,
+  toneOff = "neutral",
+  toneOn,
+}: {
+  active: boolean;
+  children: ReactNode;
+  disabled: boolean;
+  onClick: () => void;
+  toneOff?: BadgeTone;
+  toneOn: BadgeTone;
+}) {
+  return (
+    <button
+      aria-pressed={active}
+      className="transition-opacity hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
+      disabled={disabled}
+      onClick={onClick}
+      type="button"
+    >
+      <Badge square tone={active ? toneOn : toneOff}>
+        {children}
+      </Badge>
+    </button>
+  );
+}
+
+async function sendJson(method: string, url: string, body?: unknown): Promise<ApiResult> {
+  return parseResponse(
+    await fetch(url, {
+      method,
+      headers: body === undefined ? undefined : { "Content-Type": "application/json" },
+      body: body === undefined ? undefined : JSON.stringify(body),
+    }),
   );
 }
 
@@ -401,18 +603,23 @@ async function parseResponse(response: Response): Promise<ApiResult> {
 }
 
 function asRecord(value: unknown): AdminRecord | null {
-  return typeof value === "object" && value !== null && !Array.isArray(value) ? value as AdminRecord : null;
+  return typeof value === "object" && value !== null && !Array.isArray(value) ? (value as AdminRecord) : null;
 }
 
 function asListResult(value: AdminRecord): ListResult | null {
-  if (!Array.isArray(value.items) || typeof value.page !== "number" || typeof value.pages !== "number" || typeof value.total !== "number") return null;
+  if (!Array.isArray(value.items)) return null;
+  if (typeof value.page !== "number" || typeof value.pages !== "number" || typeof value.total !== "number") return null;
   const items = value.items.map(asRecord);
   if (items.some((item) => item === null)) return null;
   return { items: items.filter((item): item is AdminRecord => item !== null), page: value.page, pages: value.pages, total: value.total };
 }
 
 function withoutServerFields(record: AdminRecord): AdminRecord {
-  return Object.fromEntries(Object.entries(record).filter(([key]) => !["id", "_id", "__v", "createdAt", "updatedAt", "lastLoginAt"].includes(key)));
+  return Object.fromEntries(
+    Object.entries(record).filter(
+      ([key]) => !["id", "_id", "__v", "createdAt", "updatedAt", "lastLoginAt"].includes(key),
+    ),
+  );
 }
 
 function displayTitle(record: AdminRecord): string {
@@ -421,6 +628,13 @@ function displayTitle(record: AdminRecord): string {
     if (typeof value === "string" && value) return value;
   }
   return "Untitled record";
+}
+
+function recordSubtitle(record: AdminRecord): string {
+  if (typeof record.slug === "string" && record.slug) return record.slug;
+  if (typeof record.email === "string" && record.email) return record.email;
+  if (typeof record.createdAt === "string") return new Date(record.createdAt).toLocaleString();
+  return "";
 }
 
 function singular(tab: ContentTab): string {
