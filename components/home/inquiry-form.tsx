@@ -1,6 +1,8 @@
 "use client";
 
 import { useRef, useState, type FormEvent } from "react";
+import { Button } from "@/components/ui/button";
+import { controlInvalidClasses, Field, Input, Select, Textarea } from "@/components/ui/field";
 
 type InquiryPurpose = "general" | "membership" | "partnership" | "services";
 
@@ -16,6 +18,11 @@ export function InquiryForm({ defaultMessage = "", defaultPurpose = "general", a
   const [message, setMessage] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const idempotencyKey = useRef<string | null>(null);
+
+  const label = application ? "Membership application" : eventSlug ? "Event registration" : "Contact enquiry";
+  const selectId = application ? "inquiry-interest" : "inquiry-purpose";
+  const selectName = application ? "interest" : "purpose";
+  const selectError = fieldErrors[selectName];
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -66,60 +73,143 @@ export function InquiryForm({ defaultMessage = "", defaultPurpose = "general", a
   }
 
   return (
-    <form aria-busy={status === "sending"} aria-label={application ? "Membership application" : eventSlug ? "Event registration" : "Contact enquiry"} className="border border-brand-purple/10 bg-brand-paper p-6 sm:p-9" id="inquiry" onSubmit={handleSubmit}>
+    <form
+      aria-busy={status === "sending"}
+      aria-label={label}
+      className="border border-brand-purple/10 bg-brand-paper p-6 sm:p-9"
+      id="inquiry"
+      onSubmit={handleSubmit}
+    >
       <div className="grid gap-5 sm:grid-cols-2">
-        <div className="grid gap-2 text-sm font-semibold text-brand-purple">
-          <label htmlFor="inquiry-name">Name</label>
-          <input autoComplete="name" aria-describedby={fieldErrors.name ? "inquiry-name-error" : undefined} aria-invalid={Boolean(fieldErrors.name)} className="min-h-12 rounded-sm border border-brand-purple/15 bg-white px-4 font-normal text-brand-ink outline-none transition placeholder:text-brand-ink/40 focus:border-[#0e716b] focus:ring-2 focus:ring-[#0e716b]/15" id="inquiry-name" maxLength={100} name="name" placeholder="Your name" required />
-          {fieldErrors.name && <span className="text-xs font-normal text-red-700" id="inquiry-name-error">{fieldErrors.name}</span>}
-        </div>
-        <div className="grid gap-2 text-sm font-semibold text-brand-purple sm:col-span-2">
-          <label htmlFor="inquiry-phone">Phone <span className="font-normal text-brand-ink/55">(optional)</span></label>
-          <input autoComplete="tel" aria-describedby={fieldErrors.phone ? "inquiry-phone-error" : undefined} aria-invalid={Boolean(fieldErrors.phone)} className="min-h-12 rounded-sm border border-brand-purple/15 bg-white px-4 font-normal text-brand-ink outline-none transition placeholder:text-brand-ink/40 focus:border-[#0e716b] focus:ring-2 focus:ring-[#0e716b]/15" id="inquiry-phone" maxLength={30} name="phone" placeholder="Your phone number" type="tel" />
-          {fieldErrors.phone && <span className="text-xs font-normal text-red-700" id="inquiry-phone-error">{fieldErrors.phone}</span>}
-        </div>
-        <div className="grid gap-2 text-sm font-semibold text-brand-purple">
-          <label htmlFor="inquiry-email">Email</label>
-          <input autoComplete="email" aria-describedby={fieldErrors.email ? "inquiry-email-error" : undefined} aria-invalid={Boolean(fieldErrors.email)} className="min-h-12 rounded-sm border border-brand-purple/15 bg-white px-4 font-normal text-brand-ink outline-none transition placeholder:text-brand-ink/40 focus:border-[#0e716b] focus:ring-2 focus:ring-[#0e716b]/15" id="inquiry-email" maxLength={254} name="email" placeholder="you@example.com" required type="email" />
-          {fieldErrors.email && <span className="text-xs font-normal text-red-700" id="inquiry-email-error">{fieldErrors.email}</span>}
-        </div>
+        <Field error={fieldErrors.name} id="inquiry-name" label="Name">
+          <Input
+            aria-describedby={fieldErrors.name ? "inquiry-name-error" : undefined}
+            aria-invalid={Boolean(fieldErrors.name)}
+            autoComplete="name"
+            className={fieldErrors.name ? controlInvalidClasses : ""}
+            id="inquiry-name"
+            maxLength={100}
+            name="name"
+            placeholder="Your name"
+            required
+          />
+        </Field>
+
+        <Field error={fieldErrors.email} id="inquiry-email" label="Email">
+          <Input
+            aria-describedby={fieldErrors.email ? "inquiry-email-error" : undefined}
+            aria-invalid={Boolean(fieldErrors.email)}
+            autoComplete="email"
+            className={fieldErrors.email ? controlInvalidClasses : ""}
+            id="inquiry-email"
+            maxLength={254}
+            name="email"
+            placeholder="you@example.com"
+            required
+            type="email"
+          />
+        </Field>
+
+        <Field
+          className="sm:col-span-2"
+          error={fieldErrors.phone}
+          hint="Optional. Used only to follow up on your enquiry."
+          id="inquiry-phone"
+          label="Phone"
+        >
+          <Input
+            aria-describedby={fieldErrors.phone ? "inquiry-phone-error" : undefined}
+            aria-invalid={Boolean(fieldErrors.phone)}
+            autoComplete="tel"
+            className={fieldErrors.phone ? controlInvalidClasses : ""}
+            id="inquiry-phone"
+            maxLength={30}
+            name="phone"
+            placeholder="Your phone number"
+            type="tel"
+          />
+        </Field>
       </div>
-      {!eventSlug && <div className="mt-5 grid gap-2 text-sm font-semibold text-brand-purple">
-        <label htmlFor={application ? "inquiry-interest" : "inquiry-purpose"}>{application ? "Area of interest" : "I'm interested in"}</label>
-        <select aria-describedby={fieldErrors[application ? "interest" : "purpose"] ? "inquiry-category-error" : undefined} aria-invalid={Boolean(fieldErrors[application ? "interest" : "purpose"])} className="min-h-12 rounded-sm border border-brand-purple/15 bg-white px-4 font-normal text-brand-ink outline-none transition focus:border-[#0e716b] focus:ring-2 focus:ring-[#0e716b]/15" defaultValue={application ? "membership" : defaultPurpose} id={application ? "inquiry-interest" : "inquiry-purpose"} name={application ? "interest" : "purpose"}>
-          {application ? <>
-            <option value="membership">Membership information</option>
-            <option value="volunteering">Volunteering</option>
-            <option value="partnership">Partnership</option>
-            <option value="general">General participation</option>
-          </> : <>
-            <option value="general">A general enquiry</option>
-            <option value="membership">Membership information</option>
-            <option value="partnership">A possible partnership</option>
-            <option value="services">Discussing an idea</option>
-          </>}
-        </select>
-        {fieldErrors[application ? "interest" : "purpose"] && <span className="text-xs font-normal text-red-700" id="inquiry-category-error">{fieldErrors[application ? "interest" : "purpose"]}</span>}
-      </div>}
-      <div className="mt-5 grid gap-2 text-sm font-semibold text-brand-purple">
-        <label htmlFor="inquiry-message">Message</label>
-        <textarea aria-describedby={fieldErrors.message ? "inquiry-message-error" : undefined} aria-invalid={Boolean(fieldErrors.message)} className="min-h-32 resize-y rounded-sm border border-brand-purple/15 bg-white px-4 py-3 font-normal leading-6 text-brand-ink outline-none transition placeholder:text-brand-ink/40 focus:border-[#0e716b] focus:ring-2 focus:ring-[#0e716b]/15" defaultValue={defaultMessage} id="inquiry-message" maxLength={3000} minLength={10} name="message" placeholder="How can ECK help?" required rows={4} />
-        {fieldErrors.message && <span className="text-xs font-normal text-red-700" id="inquiry-message-error">{fieldErrors.message}</span>}
-      </div>
+
+      {!eventSlug && (
+        <Field
+          className="mt-5"
+          error={selectError}
+          id={selectId}
+          label={application ? "Area of interest" : "I'm interested in"}
+        >
+          <Select
+            aria-describedby={selectError ? `${selectId}-error` : undefined}
+            aria-invalid={Boolean(selectError)}
+            className={selectError ? controlInvalidClasses : ""}
+            defaultValue={application ? "membership" : defaultPurpose}
+            id={selectId}
+            name={selectName}
+          >
+            {application ? (
+              <>
+                <option value="membership">Membership information</option>
+                <option value="volunteering">Volunteering</option>
+                <option value="partnership">Partnership</option>
+                <option value="general">General participation</option>
+              </>
+            ) : (
+              <>
+                <option value="general">A general enquiry</option>
+                <option value="membership">Membership information</option>
+                <option value="partnership">A possible partnership</option>
+                <option value="services">Discussing an idea</option>
+              </>
+            )}
+          </Select>
+        </Field>
+      )}
+
+      <Field className="mt-5" error={fieldErrors.message} id="inquiry-message" label="Message">
+        <Textarea
+          aria-describedby={fieldErrors.message ? "inquiry-message-error" : undefined}
+          aria-invalid={Boolean(fieldErrors.message)}
+          className={`min-h-32 ${fieldErrors.message ? controlInvalidClasses : ""}`}
+          defaultValue={defaultMessage}
+          id="inquiry-message"
+          maxLength={3000}
+          minLength={10}
+          name="message"
+          placeholder="How can ECK help?"
+          required
+          rows={4}
+        />
+      </Field>
+
       <label className="mt-5 flex items-start gap-3 text-sm leading-6 text-brand-ink/70">
-        <input aria-describedby={fieldErrors.consent ? "inquiry-consent-error" : undefined} aria-invalid={Boolean(fieldErrors.consent)} className="mt-1 h-4 w-4 accent-brand-purple" id="inquiry-consent" name="consent" required type="checkbox" />
-        <span>I agree that ECK may use these details to respond to my enquiry. See the <a className="underline underline-offset-2" href="/privacy">privacy notice</a>.</span>
+        <input
+          aria-describedby={fieldErrors.consent ? "inquiry-consent-error" : undefined}
+          aria-invalid={Boolean(fieldErrors.consent)}
+          className="mt-1 h-4 w-4 accent-brand-purple"
+          id="inquiry-consent"
+          name="consent"
+          required
+          type="checkbox"
+        />
+        <span>
+          I agree that ECK may use these details to respond to my enquiry. See the{" "}
+          <a className="link-underline text-brand-purple" href="/privacy">privacy notice</a>.
+        </span>
       </label>
+      {fieldErrors.consent && <p className="mt-2 text-sm text-red-700" id="inquiry-consent-error">{fieldErrors.consent}</p>}
+
       <div className="mt-6 flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <button className="inline-flex min-h-12 items-center justify-center rounded-md bg-brand-purple px-6 py-3 text-sm font-bold text-white transition hover:bg-brand-purple/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#0e716b] disabled:cursor-wait disabled:opacity-60" disabled={status === "sending"} type="submit">
+        <Button disabled={status === "sending"} type="submit" variant="dark">
           {status === "sending" ? "Sending…" : application ? "Send application" : eventSlug ? "Request registration" : "Send enquiry"}
-        </button>
+        </Button>
         <p aria-live="polite" className="min-h-5 text-sm text-brand-ink/70" role="status">
           {message}
         </p>
       </div>
-      {fieldErrors.consent && <p className="mt-2 text-sm text-red-700" id="inquiry-consent-error">{fieldErrors.consent}</p>}
-      <p className="mt-5 text-xs leading-5 text-brand-ink/55">Please avoid including sensitive personal or financial information.</p>
+
+      <p className="mt-5 text-xs leading-5 text-brand-ink/55">
+        Please avoid including sensitive personal or financial information.
+      </p>
     </form>
   );
 }
