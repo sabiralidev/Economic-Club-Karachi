@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { DM_Sans, Playfair_Display } from "next/font/google";
 import { RouteProgress } from "@/components/route-progress";
 import { SiteFooter } from "@/components/site-footer";
@@ -19,15 +19,30 @@ export const metadata: Metadata = {
   },
   description:
     "Learn about Economic Club Karachi, described on its public profile as a growing welfare organization, and ask about its current work.",
+  applicationName: "Economic Club Karachi",
+  formatDetection: { telephone: false, address: false, email: false },
 };
+
+export const viewport: Viewport = {
+  themeColor: "#21162f",
+  colorScheme: "light",
+};
+
+/**
+ * Runs before the body paints so entrance reveals can hide their targets without
+ * flashing. If JavaScript is unavailable the attribute is never set and all
+ * content stays visible.
+ */
+const bootScript = "document.documentElement.setAttribute('data-js','true')";
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html data-scroll-behavior="smooth" lang="en">
+    <html data-scroll-behavior="smooth" lang="en" suppressHydrationWarning>
       <body
         className={`${sans.variable} ${editorial.variable} flex min-h-screen flex-col`}
         suppressHydrationWarning
       >
+        <script dangerouslySetInnerHTML={{ __html: bootScript }} />
         <a
           className="sr-only z-50 rounded bg-white p-3 text-brand-purple focus:not-sr-only focus:absolute focus:left-4 focus:top-4"
           href="#main-content"
