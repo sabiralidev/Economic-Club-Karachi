@@ -1,56 +1,34 @@
 "use client";
 
 import { useEffect, useRef, type ReactNode } from "react";
-import { usePathname } from "next/navigation";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-
-gsap.registerPlugin(ScrollTrigger);
+import { observeReveal } from "@/components/reveal";
 
 type ScrollRevealProps = {
   children: ReactNode;
   className?: string;
+  /** Reveal direct section/article/header children instead of `[data-reveal]` nodes. */
   animateSections?: boolean;
 };
 
 export function ScrollReveal({ children, className, animateSections = false }: ScrollRevealProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const pathname = usePathname();
 
   useEffect(() => {
     const container = containerRef.current;
-    if (!container || (animateSections && pathname === "/")) return;
+    if (!container) return;
 
-    let media: ReturnType<typeof gsap.matchMedia> | undefined;
-    const frame = requestAnimationFrame(() => {
-      media = gsap.matchMedia();
-      media.add("(prefers-reduced-motion: no-preference)", () => {
-        const elements = animateSections
-          ? Array.from(container.querySelectorAll<HTMLElement>(":scope > section, :scope > article, :scope > header"))
-          : gsap.utils.toArray<HTMLElement>("[data-reveal]", container);
+    const selector = animateSections
+      ? ":scope > section, :scope > article, :scope > header"
+      : "[data-reveal]";
+    const elements = Array.from(container.querySelectorAll<HTMLElement>(selector));
+    if (elements.length === 0) return;
 
-        elements.forEach((element, index) => {
-          gsap.from(element, {
-            opacity: 0,
-            y: 20,
-            delay: index * 0.06,
-            duration: 0.6,
-            ease: "power2.out",
-            scrollTrigger: {
-              trigger: element,
-              start: "top 88%",
-              once: true,
-            },
-          });
-        });
-      });
-    });
+    const cleanups = elements.map((element, index) =>
+      observeReveal(element, Math.min(index, 6) * 70),
+    );
 
-    return () => {
-      cancelAnimationFrame(frame);
-      media?.revert();
-    };
-  }, [animateSections, pathname]);
+    return () => cleanups.forEach((cleanup) => cleanup());
+  }, [animateSections]);
 
   return (
     <div className={className} ref={containerRef}>
