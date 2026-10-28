@@ -1,9 +1,14 @@
 import type { HTMLAttributes } from "react";
 
-export function Card({ className = "", ...props }: HTMLAttributes<HTMLElement>) {
+type CardProps = HTMLAttributes<HTMLElement> & {
+  /** Adds the shared hover lift used across content cards. */
+  interactive?: boolean;
+};
+
+export function Card({ className = "", interactive = false, ...props }: CardProps) {
   return (
     <article
-      className={`rounded-2xl border border-brand-purple/10 bg-white p-7 shadow-card ${className}`}
+      className={`border border-brand-purple/10 bg-white ${interactive ? "home-card" : ""} ${className}`}
       {...props}
     />
   );
