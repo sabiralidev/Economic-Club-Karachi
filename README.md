@@ -1,6 +1,6 @@
 # Economic Club Karachi
 
-Economic Club Karachi's responsive public website, built with the Next.js App Router, strict TypeScript, React, Tailwind CSS, and GSAP. Public copy that has not been confirmed by ECK is explicitly labeled as proposed, illustrative, or awaiting review.
+Economic Club Karachi's responsive public website, built with the Next.js App Router, strict TypeScript, React, and Tailwind CSS. Public copy that has not been confirmed by ECK is explicitly labeled as proposed, illustrative, or awaiting review.
 
 ## Requirements
 
@@ -121,4 +121,4 @@ Primary navigation: Home, About, Services, Events, Community, Insights, Contact.
 
 ## Design and accessibility
 
-The design tokens use a dark purple foundation with restrained turquoise, yellow, blue, and green accents. Shared layout includes the public asset at `public/eck-mark.svg`, semantic navigation, a skip link, visible keyboard focus, responsive spacing, reduced-motion handling, and GSAP/ScrollTrigger reveals. Homepage photography is illustrative editorial stock imagery in `public/images/`, not documentation of ECK activity; replace it with client-approved imagery before launch. ECK should confirm the logo asset, mission and history copy, services, events, contact details, membership information, and article drafts before public launch.
+The design tokens use a dark purple foundation with restrained turquoise, yellow, blue, and green accents. Shared layout includes the public asset at `public/eck-mark.svg`, semantic navigation, a skip link, visible keyboard focus, responsive spacing, reduced-motion handling, and CSS-first scroll reveals driven by a single shared `IntersectionObserver` (`components/reveal.ts`). Homepage photography is illustrative editorial stock imagery in `public/images/`, not documentation of ECK activity; replace it with client-approved imagery before launch. ECK should confirm the logo asset, mission and history copy, services, events, contact details, membership information, and article drafts before public launch.
