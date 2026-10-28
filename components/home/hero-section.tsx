@@ -1,34 +1,46 @@
 import Image from "next/image";
 import Link from "next/link";
 import { HeroEntrance } from "@/components/home/hero-entrance";
+import { ButtonLink } from "@/components/ui/button";
+import { Eyebrow } from "@/components/ui/eyebrow";
 
 export function HeroSection() {
   return (
-    <section className="bg-brand-purple text-white">
-      <div className="mx-auto grid max-w-content gap-0 px-5 sm:px-8 lg:min-h-[620px] lg:grid-cols-[0.9fr_1.1fr] lg:items-stretch">
+    <section className="mesh-dark grain relative overflow-hidden text-white">
+      <div className="relative mx-auto grid max-w-content gap-0 px-5 sm:px-8 lg:min-h-[640px] lg:grid-cols-[0.95fr_1.05fr] lg:items-stretch">
         <HeroEntrance>
-          <div className="flex h-full flex-col justify-center py-16 sm:py-20 lg:py-24 lg:pr-12">
-            <p data-hero-item className="mb-6 flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.18em] text-brand-teal">
+          <div className="flex h-full flex-col justify-center py-16 sm:py-20 lg:py-24 lg:pr-14">
+            <Eyebrow className="flex items-center gap-3" data-hero-item tone="dark">
+              <span aria-hidden="true" className="h-px w-8 bg-brand-teal" />
               Economic Club Karachi
-            </p>
-            <h1 data-hero-item className="font-display max-w-2xl text-[2.8rem] leading-[1.08] sm:text-6xl lg:text-[4.25rem]">
+            </Eyebrow>
+            <h1
+              className="font-display mt-7 max-w-2xl text-[2.9rem] leading-[1.05] sm:text-6xl lg:text-[4.4rem]"
+              data-hero-item
+            >
               Progress begins when people come together.
             </h1>
-            <p data-hero-item className="mt-6 max-w-xl text-base leading-7 text-white/75 sm:text-lg sm:leading-8">
-              ECK is a growing welfare organization in Karachi. Learn about its work, share an idea, or start a conversation about getting involved.
+            <p
+              className="mt-7 max-w-xl text-base leading-8 text-white/75 sm:text-lg"
+              data-hero-item
+            >
+              ECK is a growing welfare organization in Karachi. Learn about its work, share an idea, or
+              start a conversation about getting involved.
             </p>
-            <div data-hero-item className="mt-9 flex flex-wrap items-center gap-5">
-              <Link className="inline-flex min-h-12 items-center justify-center rounded-md bg-brand-teal px-6 py-3 text-sm font-bold text-brand-purple transition hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white" href="/contact#inquiry">
+            <div className="mt-10 flex flex-wrap items-center gap-5" data-hero-item>
+              <ButtonLink href="/contact#inquiry" size="lg">
                 Start a conversation
-              </Link>
+              </ButtonLink>
               <Link className="editorial-link text-sm font-semibold text-white underline" href="/about">
                 Get to know ECK
               </Link>
             </div>
-            <p data-hero-item className="mt-9 text-xs text-white/50">A first introduction. More about the organization is being confirmed.</p>
+            <p className="mt-10 max-w-md text-xs leading-5 text-white/50" data-hero-item>
+              A first introduction. More about the organization is being confirmed.
+            </p>
           </div>
         </HeroEntrance>
-        <div className="hero-image-frame relative -mx-5 min-h-[340px] overflow-hidden sm:-mx-8 lg:mx-0 lg:min-h-0">
+        <div className="hero-image-frame relative -mx-5 min-h-[360px] overflow-hidden sm:-mx-8 lg:mx-0 lg:min-h-0">
           <Image
             alt="A group sharing ideas around a table"
             className="hero-image object-cover object-center"
@@ -37,9 +49,9 @@ export function HeroSection() {
             sizes="(max-width: 1024px) 100vw, 55vw"
             src="/images/conversation.jpg"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-brand-purple/60 via-transparent to-brand-purple/5 lg:bg-gradient-to-r lg:from-brand-purple/20 lg:via-transparent lg:to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-brand-purple/70 via-brand-purple/10 to-transparent lg:bg-gradient-to-r lg:from-brand-purple/25 lg:via-transparent lg:to-transparent" />
           <div className="absolute bottom-5 left-5 flex items-center gap-3 rounded-sm border border-white/25 bg-brand-purple/80 px-4 py-3 text-xs text-white backdrop-blur-sm sm:bottom-8 sm:left-8">
-            <span className="h-2 w-2 rounded-full bg-brand-teal" />
+            <span aria-hidden="true" className="h-2 w-2 rounded-full bg-brand-teal" />
             Conversation begins here
           </div>
         </div>
