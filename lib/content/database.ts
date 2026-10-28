@@ -107,43 +107,71 @@ export type PublicPageQuery = {
 export async function listServices(query: PublicPageQuery = {}): Promise<PageResult<ServiceSummary>> {
   const page = pageNumber(query.page);
   const limit = pageLimit(query.limit);
-  const filter: Record<string, unknown> = { published: true, archived: { $ne: true } };
+  const filter = publishedFilter();
   addCategory(filter, query.category);
   addText(filter, query.q);
-  const sort = sortOption(query.sort, { newest: { createdAt: -1, _id: -1 }, oldest: { createdAt: 1, _id: 1 }, title: { title: 1, _id: 1 } }, { updatedAt: -1, _id: -1 });
-  if (await connectOrUseSampleContent("services")) return sampleServices(query);
-  const [documents, total, publishedTotal] = await Promise.all([
-    Service.find(filter).select("title slug summary category image seo createdAt updatedAt")
-      .sort(sort)
-      .skip((page - 1) * limit).limit(limit).lean(),
-    Service.countDocuments(filter),
-    Service.countDocuments({ published: true, archived: { $ne: true } }),
-  ]);
-  if (publishedTotal === 0) return sampleServices(query);
-  return pageResult(documents.map((record) => ({
-    id: record._id.toString(), title: record.title, slug: record.slug, summary: record.summary,
-    category: record.category, image: optionalString(record.image),
-    seo: seoContent(record.seo), createdAt: record.createdAt.toISOString(), updatedAt: record.updatedAt.toISOString(),
-  })), page, limit, total);
+  const sort = sortOption(
+    query.sort,
+    { newest: { createdAt: -1, _id: -1 }, oldest: { createdAt: 1, _id: 1 }, title: { title: 1, _id: 1 } },
+    { updatedAt: -1, _id: -1 },
+  );
+
+  return paginate({
+    section: "services",
+    page,
+    limit,
+    sample: () => sampleServices(query),
+    query: () => Promise.all([
+      Service.find(filter)
+        .select("title slug summary category image seo createdAt updatedAt")
+        .sort(sort)
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .lean(),
+      Service.countDocuments(filter),
+      Service.countDocuments(publishedFilter()),
+    ]),
+    map: (record) => ({
+      id: record._id.toString(),
+      title: record.title,
+      slug: record.slug,
+      summary: record.summary,
+      category: record.category,
+      image: optionalString(record.image),
+      seo: seoContent(record.seo),
+      createdAt: record.createdAt.toISOString(),
+      updatedAt: record.updatedAt.toISOString(),
+    }),
+  });
 }
 
 export async function getServiceBySlug(slug: string): Promise<ServiceContent | null> {
-  if (await connectOrUseSampleContent("services")) return sampleServiceBySlug(slug);
-  const record = await Service.findOne({ slug, published: true, archived: { $ne: true } })
-    .select("title slug summary description category image seo createdAt updatedAt").lean();
-  if (record) return {
-    id: record._id.toString(), title: record.title, slug: record.slug, summary: record.summary,
-    description: record.description, category: record.category, image: optionalString(record.image),
-    seo: seoContent(record.seo), createdAt: record.createdAt.toISOString(), updatedAt: record.updatedAt.toISOString(),
-  };
-  const publishedTotal = await Service.countDocuments({ published: true, archived: { $ne: true } });
-  return publishedTotal === 0 ? sampleServiceBySlug(slug) : null;
+  return findBySlug({
+    section: "services",
+    sample: () => sampleServiceBySlug(slug),
+    query: () => Service.findOne(publishedFilter({ slug }))
+      .select("title slug summary description category image seo createdAt updatedAt")
+      .lean(),
+    count: () => Service.countDocuments(publishedFilter()),
+    map: (record) => ({
+      id: record._id.toString(),
+      title: record.title,
+      slug: record.slug,
+      summary: record.summary,
+      description: record.description,
+      category: record.category,
+      image: optionalString(record.image),
+      seo: seoContent(record.seo),
+      createdAt: record.createdAt.toISOString(),
+      updatedAt: record.updatedAt.toISOString(),
+    }),
+  });
 }
 
 export async function listEvents(query: PublicPageQuery = {}): Promise<PageResult<EventSummary>> {
   const page = pageNumber(query.page);
   const limit = pageLimit(query.limit);
-  const filter: Record<string, unknown> = { published: true, archived: { $ne: true }, status: { $ne: "cancelled" } };
+  const filter = publishedEventFilter();
   addCategory(filter, query.category);
   addText(filter, query.q);
   if (query.status && query.status !== "upcoming" && query.status !== "past") {
@@ -159,121 +187,208 @@ export async function listEvents(query: PublicPageQuery = {}): Promise<PageResul
     }
     filter.startDate = range;
   }
-  const sort = sortOption(query.sort, {
-    newest: { startDate: -1, _id: -1 },
-    oldest: { startDate: 1, _id: 1 },
-    upcoming: { startDate: 1, _id: 1 },
-  }, { startDate: 1, _id: 1 });
-  if (await connectOrUseSampleContent("events")) return sampleEvents(query);
-  const [documents, total, publishedTotal] = await Promise.all([
-    Event.find(filter).select("title slug summary image category venue venueVerified startDate endDate status registration seo createdAt updatedAt")
-      .sort(sort).skip((page - 1) * limit).limit(limit).lean(),
-    Event.countDocuments(filter),
-    Event.countDocuments({ published: true, archived: { $ne: true }, status: { $ne: "cancelled" } }),
-  ]);
-  if (publishedTotal === 0) return sampleEvents(query);
-  return pageResult(documents.map((record) => ({
-    id: record._id.toString(), title: record.title, slug: record.slug, summary: record.summary,
-    image: optionalString(record.image), category: optionalString(record.category), venue: record.venueVerified ? optionalString(record.venue) : undefined,
-    startDate: record.startDate.toISOString(), endDate: record.endDate?.toISOString(),
-    status: record.status, registration: record.registration ?? { enabled: false }, seo: seoContent(record.seo),
-    createdAt: record.createdAt.toISOString(), updatedAt: record.updatedAt.toISOString(),
-  })), page, limit, total);
+  const sort = sortOption(
+    query.sort,
+    {
+      newest: { startDate: -1, _id: -1 },
+      oldest: { startDate: 1, _id: 1 },
+      upcoming: { startDate: 1, _id: 1 },
+    },
+    { startDate: 1, _id: 1 },
+  );
+
+  return paginate({
+    section: "events",
+    page,
+    limit,
+    sample: () => sampleEvents(query),
+    query: () => Promise.all([
+      Event.find(filter)
+        .select("title slug summary image category venue venueVerified startDate endDate status registration seo createdAt updatedAt")
+        .sort(sort)
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .lean(),
+      Event.countDocuments(filter),
+      Event.countDocuments(publishedEventFilter()),
+    ]),
+    map: (record) => ({
+      id: record._id.toString(),
+      title: record.title,
+      slug: record.slug,
+      summary: record.summary,
+      image: optionalString(record.image),
+      category: optionalString(record.category),
+      venue: record.venueVerified ? optionalString(record.venue) : undefined,
+      startDate: record.startDate.toISOString(),
+      endDate: record.endDate?.toISOString(),
+      status: record.status,
+      registration: record.registration ?? { enabled: false },
+      seo: seoContent(record.seo),
+      createdAt: record.createdAt.toISOString(),
+      updatedAt: record.updatedAt.toISOString(),
+    }),
+  });
 }
 
 export async function getEventBySlug(slug: string): Promise<EventContent | null> {
-  if (await connectOrUseSampleContent("events")) return sampleEventBySlug(slug);
-  const record = await Event.findOne({ slug, published: true, archived: { $ne: true }, status: { $ne: "cancelled" } })
-    .select("title slug summary description image category venue venueVerified startDate endDate status registration seo createdAt updatedAt").lean();
-  if (record) return {
-    id: record._id.toString(), title: record.title, slug: record.slug, summary: record.summary,
-    description: record.description, image: optionalString(record.image), category: optionalString(record.category), venue: record.venueVerified ? optionalString(record.venue) : undefined,
-    startDate: record.startDate.toISOString(), endDate: record.endDate?.toISOString(),
-    status: record.status, registration: record.registration ?? { enabled: false }, seo: seoContent(record.seo),
-    createdAt: record.createdAt.toISOString(), updatedAt: record.updatedAt.toISOString(),
-  };
-  const publishedTotal = await Event.countDocuments({ published: true, archived: { $ne: true }, status: { $ne: "cancelled" } });
-  return publishedTotal === 0 ? sampleEventBySlug(slug) : null;
+  return findBySlug({
+    section: "events",
+    sample: () => sampleEventBySlug(slug),
+    query: () => Event.findOne(publishedEventFilter({ slug }))
+      .select("title slug summary description image category venue venueVerified startDate endDate status registration seo createdAt updatedAt")
+      .lean(),
+    count: () => Event.countDocuments(publishedEventFilter()),
+    map: (record) => ({
+      id: record._id.toString(),
+      title: record.title,
+      slug: record.slug,
+      summary: record.summary,
+      description: record.description,
+      image: optionalString(record.image),
+      category: optionalString(record.category),
+      venue: record.venueVerified ? optionalString(record.venue) : undefined,
+      startDate: record.startDate.toISOString(),
+      endDate: record.endDate?.toISOString(),
+      status: record.status,
+      registration: record.registration ?? { enabled: false },
+      seo: seoContent(record.seo),
+      createdAt: record.createdAt.toISOString(),
+      updatedAt: record.updatedAt.toISOString(),
+    }),
+  });
 }
 
 export async function listArticles(query: PublicPageQuery = {}): Promise<PageResult<ArticleSummary>> {
   const page = pageNumber(query.page);
   const limit = pageLimit(query.limit);
-  const filter: Record<string, unknown> = { published: true, archived: { $ne: true }, publishedAt: { $lte: new Date() } };
+  const filter = publishedArticleFilter();
   addCategory(filter, query.category);
   addText(filter, query.q);
   if (query.tag) filter.tags = bounded(query.tag, 40, "tag");
-  const sort = sortOption(query.sort, { oldest: { publishedAt: 1, _id: 1 }, title: { title: 1, _id: 1 } }, { publishedAt: -1, _id: -1 });
-  if (await connectOrUseSampleContent("insights")) return sampleArticles(query);
-  const [documents, total, publishedTotal] = await Promise.all([
-    Article.find(filter).select("title slug excerpt featuredImage category tags publishedAt seo createdAt updatedAt")
-      .sort(sort)
-      .skip((page - 1) * limit).limit(limit).lean(),
-    Article.countDocuments(filter),
-    Article.countDocuments({ published: true, archived: { $ne: true }, publishedAt: { $lte: new Date() } }),
-  ]);
-  if (publishedTotal === 0) return sampleArticles(query);
-  return pageResult(documents.map((record) => ({
-    id: record._id.toString(), title: record.title, slug: record.slug, excerpt: record.excerpt,
-    featuredImage: optionalString(record.featuredImage), category: record.category,
-    tags: record.tags, publishedAt: record.publishedAt?.toISOString(),
-    seo: seoContent(record.seo), createdAt: record.createdAt.toISOString(), updatedAt: record.updatedAt.toISOString(),
-  })), page, limit, total);
+  const sort = sortOption(
+    query.sort,
+    { oldest: { publishedAt: 1, _id: 1 }, title: { title: 1, _id: 1 } },
+    { publishedAt: -1, _id: -1 },
+  );
+
+  return paginate({
+    section: "insights",
+    page,
+    limit,
+    sample: () => sampleArticles(query),
+    query: () => Promise.all([
+      Article.find(filter)
+        .select("title slug excerpt featuredImage category tags publishedAt seo createdAt updatedAt")
+        .sort(sort)
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .lean(),
+      Article.countDocuments(filter),
+      Article.countDocuments(publishedArticleFilter()),
+    ]),
+    map: (record) => ({
+      id: record._id.toString(),
+      title: record.title,
+      slug: record.slug,
+      excerpt: record.excerpt,
+      featuredImage: optionalString(record.featuredImage),
+      category: record.category,
+      tags: record.tags,
+      publishedAt: record.publishedAt?.toISOString(),
+      seo: seoContent(record.seo),
+      createdAt: record.createdAt.toISOString(),
+      updatedAt: record.updatedAt.toISOString(),
+    }),
+  });
 }
 
 export async function getArticleBySlug(slug: string): Promise<ArticleContent | null> {
-  if (await connectOrUseSampleContent("insights")) return sampleArticleBySlug(slug);
-  const record = await Article.findOne({
-    slug, published: true, archived: { $ne: true }, publishedAt: { $lte: new Date() },
-  }).select("title slug excerpt body featuredImage category tags publishedAt seo createdAt updatedAt").lean();
-  if (record) return {
-    id: record._id.toString(), title: record.title, slug: record.slug, excerpt: record.excerpt,
-    body: record.body, featuredImage: optionalString(record.featuredImage), category: record.category, tags: record.tags,
-    publishedAt: record.publishedAt?.toISOString(),
-    seo: seoContent(record.seo), createdAt: record.createdAt.toISOString(), updatedAt: record.updatedAt.toISOString(),
-  };
-  const publishedTotal = await Article.countDocuments({ published: true, archived: { $ne: true }, publishedAt: { $lte: new Date() } });
-  return publishedTotal === 0 ? sampleArticleBySlug(slug) : null;
+  return findBySlug({
+    section: "insights",
+    sample: () => sampleArticleBySlug(slug),
+    query: () => Article.findOne(publishedArticleFilter({ slug }))
+      .select("title slug excerpt body featuredImage category tags publishedAt seo createdAt updatedAt")
+      .lean(),
+    count: () => Article.countDocuments(publishedArticleFilter()),
+    map: (record) => ({
+      id: record._id.toString(),
+      title: record.title,
+      slug: record.slug,
+      excerpt: record.excerpt,
+      body: record.body,
+      featuredImage: optionalString(record.featuredImage),
+      category: record.category,
+      tags: record.tags,
+      publishedAt: record.publishedAt?.toISOString(),
+      seo: seoContent(record.seo),
+      createdAt: record.createdAt.toISOString(),
+      updatedAt: record.updatedAt.toISOString(),
+    }),
+  });
 }
 
 export async function listGallery(query: PublicPageQuery = {}): Promise<PageResult<GalleryContent>> {
   const page = pageNumber(query.page);
   const limit = pageLimit(query.limit);
-  const filter: Record<string, unknown> = { published: true, archived: { $ne: true } };
+  const filter = publishedFilter();
   addCategory(filter, query.category);
   addText(filter, query.q);
-  const sort = sortOption(query.sort, { newest: { createdAt: -1, _id: -1 }, oldest: { createdAt: 1, _id: 1 }, title: { title: 1, _id: 1 } }, { updatedAt: -1, _id: -1 });
-  if (await connectOrUseSampleContent("gallery")) return sampleGalleries(query);
-  const [documents, total, publishedTotal] = await Promise.all([
-    Gallery.find(filter).select("title slug description images category seo createdAt updatedAt")
-      .sort(sort)
-      .skip((page - 1) * limit).limit(limit).lean(),
-    Gallery.countDocuments(filter),
-    Gallery.countDocuments({ published: true, archived: { $ne: true } }),
-  ]);
-  if (publishedTotal === 0) return sampleGalleries(query);
-  return pageResult(documents.map((record) => ({
-    id: record._id.toString(), title: record.title, slug: record.slug, description: record.description,
-    images: Array.from(record.images, (image) => ({
-      src: image.src, alt: image.alt, caption: optionalString(image.caption),
-    })), category: record.category, seo: seoContent(record.seo), createdAt: record.createdAt.toISOString(),
-    updatedAt: record.updatedAt.toISOString(),
-  })), page, limit, total);
+  const sort = sortOption(
+    query.sort,
+    { newest: { createdAt: -1, _id: -1 }, oldest: { createdAt: 1, _id: 1 }, title: { title: 1, _id: 1 } },
+    { updatedAt: -1, _id: -1 },
+  );
+
+  return paginate({
+    section: "gallery",
+    page,
+    limit,
+    sample: () => sampleGalleries(query),
+    query: () => Promise.all([
+      Gallery.find(filter)
+        .select("title slug description images category seo createdAt updatedAt")
+        .sort(sort)
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .lean(),
+      Gallery.countDocuments(filter),
+      Gallery.countDocuments(publishedFilter()),
+    ]),
+    map: (record) => ({
+      id: record._id.toString(),
+      title: record.title,
+      slug: record.slug,
+      description: record.description,
+      images: galleryImages(record.images),
+      category: record.category,
+      seo: seoContent(record.seo),
+      createdAt: record.createdAt.toISOString(),
+      updatedAt: record.updatedAt.toISOString(),
+    }),
+  });
 }
 
 export async function getGalleryBySlug(slug: string): Promise<GalleryContent | null> {
-  if (await connectOrUseSampleContent("gallery")) return sampleGalleryBySlug(slug);
-  const record = await Gallery.findOne({ slug, published: true, archived: { $ne: true } })
-    .select("title slug description images category seo createdAt updatedAt").lean();
-  if (record) return {
-    id: record._id.toString(), title: record.title, slug: record.slug, description: record.description,
-    images: Array.from(record.images, (image) => ({
-      src: image.src, alt: image.alt, caption: optionalString(image.caption),
-    })), category: record.category, seo: seoContent(record.seo), createdAt: record.createdAt.toISOString(),
-    updatedAt: record.updatedAt.toISOString(),
-  };
-  const publishedTotal = await Gallery.countDocuments({ published: true, archived: { $ne: true } });
-  return publishedTotal === 0 ? sampleGalleryBySlug(slug) : null;
+  return findBySlug({
+    section: "gallery",
+    sample: () => sampleGalleryBySlug(slug),
+    query: () => Gallery.findOne(publishedFilter({ slug }))
+      .select("title slug description images category seo createdAt updatedAt")
+      .lean(),
+    count: () => Gallery.countDocuments(publishedFilter()),
+    map: (record) => ({
+      id: record._id.toString(),
+      title: record.title,
+      slug: record.slug,
+      description: record.description,
+      images: galleryImages(record.images),
+      category: record.category,
+      seo: seoContent(record.seo),
+      createdAt: record.createdAt.toISOString(),
+      updatedAt: record.updatedAt.toISOString(),
+    }),
+  });
 }
 
 export async function getPublicSiteSettings(): Promise<PublicSiteSettings | null> {
@@ -294,6 +409,60 @@ export async function getPublicSiteSettings(): Promise<PublicSiteSettings | null
       title: optionalString(settings.seoDefaults.title), description: optionalString(settings.seoDefaults.description),
     } : undefined,
   };
+}
+
+type PaginateConfig<TRecord, TItem> = {
+  section: string;
+  page: number;
+  limit: number;
+  /** Runs the paginated find + counts. Only executed once MongoDB is reachable. */
+  query: () => Promise<[TRecord[], number, number]>;
+  /** Sample fallback used when the database is unavailable or holds no published records. */
+  sample: () => PageResult<TItem>;
+  map: (record: TRecord) => TItem;
+};
+
+async function paginate<TRecord, TItem>(config: PaginateConfig<TRecord, TItem>): Promise<PageResult<TItem>> {
+  if (await connectOrUseSampleContent(config.section)) return config.sample();
+  const [documents, total, publishedTotal] = await config.query();
+  if (publishedTotal === 0) return config.sample();
+  return pageResult(documents.map(config.map), config.page, config.limit, total);
+}
+
+type FindBySlugConfig<TRecord, TItem> = {
+  section: string;
+  query: () => Promise<TRecord | null>;
+  count: () => Promise<number>;
+  sample: () => TItem | null;
+  map: (record: TRecord) => TItem;
+};
+
+async function findBySlug<TRecord, TItem>(config: FindBySlugConfig<TRecord, TItem>): Promise<TItem | null> {
+  if (await connectOrUseSampleContent(config.section)) return config.sample();
+  const record = await config.query();
+  if (record) return config.map(record);
+  const publishedTotal = await config.count();
+  return publishedTotal === 0 ? config.sample() : null;
+}
+
+function publishedFilter(extra: Record<string, unknown> = {}): Record<string, unknown> {
+  return { published: true, archived: { $ne: true }, ...extra };
+}
+
+function publishedEventFilter(extra: Record<string, unknown> = {}): Record<string, unknown> {
+  return { published: true, archived: { $ne: true }, status: { $ne: "cancelled" }, ...extra };
+}
+
+function publishedArticleFilter(extra: Record<string, unknown> = {}): Record<string, unknown> {
+  return { published: true, archived: { $ne: true }, publishedAt: { $lte: new Date() }, ...extra };
+}
+
+function galleryImages(images: { src: string; alt: string; caption?: string | null }[]): GalleryContent["images"] {
+  return Array.from(images, (image) => ({
+    src: image.src,
+    alt: image.alt,
+    caption: optionalString(image.caption),
+  }));
 }
 
 function optionalString(value: string | null | undefined): string | undefined {
