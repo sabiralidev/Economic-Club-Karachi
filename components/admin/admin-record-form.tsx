@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { FormField } from "@/components/ui/form-field";
-import { gsap } from "gsap";
+import { useEffect, useState, type FormEvent } from "react";
+import { Button } from "@/components/ui/button";
+import { Field, Input, Select, Textarea } from "@/components/ui/field";
 
 type AdminTab = "services" | "events" | "articles" | "gallery" | "settings";
+type GalleryImage = { src: string; alt: string; caption?: string };
 type AdminRecord = Record<string, unknown> & {
   seo?: Record<string, unknown>;
   contact?: Record<string, unknown>;
@@ -19,6 +20,14 @@ interface AdminRecordFormProps {
   isPending: boolean;
 }
 
+const selectOptions: Record<string, { label: string; value: string }[]> = {
+  status: [
+    { label: "Upcoming", value: "upcoming" },
+    { label: "Past", value: "past" },
+    { label: "Cancelled", value: "cancelled" },
+  ],
+};
+
 export function AdminRecordForm({
   tab,
   initialData,
@@ -27,341 +36,352 @@ export function AdminRecordForm({
   isPending,
 }: AdminRecordFormProps) {
   const [formData, setFormData] = useState<AdminRecord>(initialData);
-  const formRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setFormData(initialData);
   }, [initialData]);
 
-  useEffect(() => {
-    if (formRef.current) {
-      const children = formRef.current.querySelectorAll(".form-field-container");
-      gsap.fromTo(
-        children,
-        { opacity: 0, y: 20 },
-        { 
-          opacity: 1, 
-          y: 0, 
-          duration: 0.5, 
-          stagger: 0.05, 
-          ease: "power2.out",
-          clearProps: "all"
-        }
-      );
-    }
+  const setField = (key: string, value: unknown) =>
+    setFormData((previous) => ({ ...previous, [key]: value }));
 
-  }, [tab]);
-
-  const handleChange = (key: string, value: unknown) => {
-    setFormData((prev) => ({ ...prev, [key]: value }));
-  };
-
-  const handleNestedChange = (parentKey: "seo" | "contact" | "socialLinks", key: string, value: unknown) => {
-    setFormData((prev) => ({
-      ...prev,
-      [parentKey]: {
-        ...(isRecord(prev[parentKey]) ? prev[parentKey] : {}),
-        [key]: value,
-      },
+  const setNested = (parent: "seo" | "contact" | "socialLinks", key: string, value: unknown) =>
+    setFormData((previous) => ({
+      ...previous,
+      [parent]: { ...(isRecord(previous[parent]) ? previous[parent] : {}), [key]: value },
     }));
-  };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = (event: FormEvent) => {
+    event.preventDefault();
     onSave(formData);
   };
 
-  const renderInput = (
-    label: string,
-    key: string,
-    type: string = "text",
-    placeholder: string = ""
-  ) => (
-    <div className="form-field-container">
-      <FormField id={key} label={label}>
-        <input
-          id={key}
-          type={type}
-          value={textValue(formData[key])}
-          onChange={(e) => handleChange(key, e.target.value)}
-          placeholder={placeholder}
-          className="min-h-11 w-full border border-brand-purple/20 bg-white px-3 text-sm transition-all focus:border-brand-teal focus:outline-none focus:ring-1 focus:ring-brand-teal"
-        />
-      </FormField>
-    </div>
+  const textField = (label: string, key: string, options: { type?: string; placeholder?: string } = {}) => (
+    <Field id={key} label={label}>
+      <Input
+        id={key}
+        type={options.type ?? "text"}
+        value={textValue(formData[key])}
+        onChange={(event) => setField(key, event.target.value)}
+        placeholder={options.placeholder}
+      />
+    </Field>
   );
 
-  const renderTextarea = (label: string, key: string, placeholder: string = "") => (
-    <div className="form-field-container">
-      <FormField id={key} label={label}>
-        <textarea
-          id={key}
-          value={textValue(formData[key])}
-          onChange={(e) => handleChange(key, e.target.value)}
-          placeholder={placeholder}
-          rows={4}
-          className="w-full border border-brand-purple/20 bg-white p-3 text-sm transition-all focus:border-brand-teal focus:outline-none focus:ring-1 focus:ring-brand-teal"
-        />
-      </FormField>
-    </div>
+  const textAreaField = (label: string, key: string, placeholder = "") => (
+    <Field id={key} label={label}>
+      <Textarea
+        id={key}
+        rows={4}
+        value={textValue(formData[key])}
+        onChange={(event) => setField(key, event.target.value)}
+        placeholder={placeholder}
+      />
+    </Field>
   );
 
-  const renderCheckbox = (label: string, key: string) => (
-    <div className="form-field-container flex items-center gap-3 py-2">
+  const selectField = (label: string, key: string, options: { label: string; value: string }[]) => (
+    <Field id={key} label={label}>
+      <div className="relative">
+        <Select id={key} value={textValue(formData[key])} onChange={(event) => setField(key, event.target.value)}>
+          {options.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </Select>
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-brand-ink/50"
+        >
+          ▾
+        </span>
+      </div>
+    </Field>
+  );
+
+  const boolField = (label: string, key: string) => (
+    <label className="flex items-center gap-3 py-1 text-sm font-medium text-brand-purple" htmlFor={key}>
       <input
         id={key}
         type="checkbox"
-        checked={!!formData[key]}
-        onChange={(e) => handleChange(key, e.target.checked)}
-        className="h-5 w-5 rounded border-brand-purple/20 text-brand-teal focus:ring-brand-teal"
+        checked={Boolean(formData[key])}
+        onChange={(event) => setField(key, event.target.checked)}
+        className="h-4 w-4 rounded-sm border border-brand-purple/30 accent-brand-teal"
       />
-      <label htmlFor={key} className="text-sm font-medium text-brand-purple cursor-pointer">
-        {label}
-      </label>
-    </div>
+      {label}
+    </label>
   );
 
-  const renderSelect = (label: string, key: string, options: { label: string; value: string }[]) => (
-    <div className="form-field-container">
-      <FormField id={key} label={label}>
-        <select
-          id={key}
-          value={textValue(formData[key])}
-          onChange={(e) => handleChange(key, e.target.value)}
-          className="min-h-11 w-full border border-brand-purple/20 bg-white px-3 text-sm transition-all focus:border-brand-teal focus:outline-none focus:ring-1 focus:ring-brand-teal"
-        >
-          {options.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
+  const images = toGalleryImages(formData.images);
+  const updateImage = (index: number, patch: Partial<GalleryImage>) =>
+    setField(
+      "images",
+      serializeGalleryImages(images.map((image, position) => (position === index ? { ...image, ...patch } : image))),
+    );
+  const addImage = () => setField("images", serializeGalleryImages([...images, { src: "", alt: "" }]));
+  const removeImage = (index: number) =>
+    setField(
+      "images",
+      serializeGalleryImages(images.filter((_, position) => position !== index)),
+    );
+
+  const renderImages = () => (
+    <div className="space-y-4 border border-brand-purple/10 bg-brand-paper/40 p-4 sm:p-5">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h4 className="text-xs font-bold uppercase tracking-widest text-brand-purple/70">Gallery images</h4>
+        <span className="text-xs font-medium text-brand-ink/55">
+          {images.length} image{images.length === 1 ? "" : "s"}
+        </span>
+      </div>
+
+      {images.length === 0 ? (
+        <p className="text-sm leading-6 text-brand-ink/70">
+          No images yet. Add at least one image before publishing this gallery item.
+        </p>
+      ) : (
+        <ul className="space-y-3">
+          {images.map((image, index) => (
+            <li className="space-y-3 border border-brand-purple/10 bg-white p-4" key={index}>
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-[11px] font-bold uppercase tracking-widest text-brand-ink/50">
+                  Image {index + 1}
+                </p>
+                <button
+                  className="text-xs font-bold text-red-700 transition-colors hover:text-red-800 hover:underline"
+                  onClick={() => removeImage(index)}
+                  type="button"
+                >
+                  Remove
+                </button>
+              </div>
+              <Field id={`gallery-image-${index}-src`} label="Image URL">
+                <Input
+                  id={`gallery-image-${index}-src`}
+                  value={image.src}
+                  onChange={(event) => updateImage(index, { src: event.target.value })}
+                  placeholder="/images/example.jpg"
+                />
+              </Field>
+              <Field id={`gallery-image-${index}-alt`} label="Alt text">
+                <Input
+                  id={`gallery-image-${index}-alt`}
+                  value={image.alt}
+                  onChange={(event) => updateImage(index, { alt: event.target.value })}
+                  placeholder="Describe the image for screen readers"
+                />
+              </Field>
+              <Field id={`gallery-image-${index}-caption`} label="Caption (optional)">
+                <Input
+                  id={`gallery-image-${index}-caption`}
+                  value={image.caption ?? ""}
+                  onChange={(event) => updateImage(index, { caption: event.target.value })}
+                  placeholder="Shown beneath the image"
+                />
+              </Field>
+            </li>
           ))}
-        </select>
-      </FormField>
+        </ul>
+      )}
+
+      <Button onClick={addImage} size="sm" type="button" variant="outline">
+        {images.length === 0 ? "Add image" : "Add another image"}
+      </Button>
     </div>
   );
 
-  const renderSEO = () => (
-    <div className="form-field-container mt-6 space-y-4 rounded-sm border border-brand-purple/10 bg-brand-paper/30 p-4">
-      <h4 className="text-xs font-bold uppercase tracking-wider text-brand-purple/60">SEO Optimization</h4>
+  const renderSeo = () => (
+    <div className="space-y-4 border border-brand-purple/10 bg-brand-paper/40 p-4 sm:p-5">
+      <h4 className="text-xs font-bold uppercase tracking-widest text-brand-purple/70">SEO</h4>
       <div className="grid gap-4 sm:grid-cols-2">
-        <FormField id="seo-title" label="Meta Title">
-          <input
+        <Field id="seo-title" label="Meta title">
+          <Input
             id="seo-title"
             value={textValue(formData.seo?.title)}
-            onChange={(e) => handleNestedChange("seo", "title", e.target.value)}
-            className="min-h-11 w-full border border-brand-purple/20 bg-white px-3 text-sm"
+            onChange={(event) => setNested("seo", "title", event.target.value)}
           />
-        </FormField>
-        <FormField id="seo-canonical" label="Canonical URL">
-          <input
+        </Field>
+        <Field id="seo-canonical" label="Canonical URL">
+          <Input
             id="seo-canonical"
             value={textValue(formData.seo?.canonicalUrl)}
-            onChange={(e) => handleNestedChange("seo", "canonicalUrl", e.target.value)}
-            className="min-h-11 w-full border border-brand-purple/20 bg-white px-3 text-sm"
+            onChange={(event) => setNested("seo", "canonicalUrl", event.target.value)}
           />
-        </FormField>
+        </Field>
       </div>
-      <FormField id="seo-description" label="Meta Description">
-        <textarea
+      <Field id="seo-description" label="Meta description">
+        <Textarea
           id="seo-description"
-          value={textValue(formData.seo?.description)}
-          onChange={(e) => handleNestedChange("seo", "description", e.target.value)}
           rows={2}
-          className="w-full border border-brand-purple/20 bg-white p-3 text-sm"
+          value={textValue(formData.seo?.description)}
+          onChange={(event) => setNested("seo", "description", event.target.value)}
         />
-      </FormField>
+      </Field>
     </div>
   );
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div ref={formRef} className="space-y-5">
+    <form
+      className="space-y-6"
+      onSubmit={handleSubmit}
+      style={{ animation: "eck-fade-up 360ms var(--ease-out-soft) both" }}
+    >
+      <div className="space-y-5">
         {tab === "services" && (
           <>
-            {renderInput("Title", "title")}
-            {renderInput("Slug", "slug", "text", "e-g-service-name")}
-            {renderInput("Category", "category")}
-            {renderInput("Image URL / Path", "image")}
-            {renderTextarea("Summary", "summary")}
-            {renderTextarea("Full Description", "description")}
-            <div className="flex flex-wrap gap-6">
-              {renderCheckbox("Published", "published")}
-              {renderCheckbox("Archived", "archived")}
+            {textField("Title", "title")}
+            {textField("Slug", "slug", { placeholder: "e-g-service-name" })}
+            {textField("Category", "category")}
+            {textField("Image URL / Path", "image")}
+            {textAreaField("Summary", "summary")}
+            {textAreaField("Full description", "description")}
+            <div className="flex flex-wrap gap-x-8 gap-y-2">
+              {boolField("Published", "published")}
+              {boolField("Archived", "archived")}
             </div>
-            {renderSEO()}
+            {renderSeo()}
           </>
         )}
 
         {tab === "events" && (
           <>
-            {renderInput("Title", "title")}
-            {renderInput("Slug", "slug")}
+            {textField("Title", "title")}
+            {textField("Slug", "slug")}
             <div className="grid gap-4 sm:grid-cols-2">
-              {renderInput("Category", "category")}
-              {renderSelect("Status", "status", [
-                { label: "Upcoming", value: "upcoming" },
-                { label: "Past", value: "past" },
-                { label: "Cancelled", value: "cancelled" },
-              ])}
+              {textField("Category", "category")}
+              {selectField("Status", "status", selectOptions.status)}
             </div>
-            {renderInput("Image URL", "image")}
-            {renderTextarea("Summary", "summary")}
-            {renderTextarea("Full Description", "description")}
+            {textField("Image URL", "image")}
+            {textAreaField("Summary", "summary")}
+            {textAreaField("Full description", "description")}
             <div className="grid gap-4 sm:grid-cols-2">
-              {renderInput("Start Date", "startDate", "datetime-local")}
-              {renderInput("End Date", "endDate", "datetime-local")}
+              {textField("Start date", "startDate", { type: "datetime-local" })}
+              {textField("End date", "endDate", { type: "datetime-local" })}
             </div>
-            {renderInput("Venue", "venue")}
-            <div className="flex flex-wrap gap-6">
-              {renderCheckbox("Venue Verified", "venueVerified")}
-              {renderCheckbox("Registration Enabled", "registrationEnabled")}
-              {renderCheckbox("Published", "published")}
-              {renderCheckbox("Archived", "archived")}
+            {textField("Venue", "venue")}
+            <div className="flex flex-wrap gap-x-8 gap-y-2">
+              {boolField("Venue verified", "venueVerified")}
+              {boolField("Registration enabled", "registrationEnabled")}
+              {boolField("Published", "published")}
+              {boolField("Archived", "archived")}
             </div>
-            {renderSEO()}
+            {renderSeo()}
           </>
         )}
 
         {tab === "articles" && (
           <>
-            {renderInput("Title", "title")}
-            {renderInput("Slug", "slug")}
-            {renderInput("Category", "category")}
-            {renderInput("Featured Image", "featuredImage")}
-            <div className="form-field-container">
-              <FormField id="tags" label="Tags (comma separated)">
-                <input
-                  id="tags"
-                  value={Array.isArray(formData.tags) ? formData.tags.join(", ") : ""}
-                  onChange={(e) => handleChange("tags", e.target.value.split(",").map(t => t.trim()).filter(Boolean))}
-                  className="min-h-11 w-full border border-brand-purple/20 bg-white px-3 text-sm"
-                  placeholder="tag1, tag2, tag3"
-                />
-              </FormField>
+            {textField("Title", "title")}
+            {textField("Slug", "slug")}
+            {textField("Category", "category")}
+            {textField("Featured image", "featuredImage")}
+            <Field id="tags" label="Tags (comma separated)">
+              <Input
+                id="tags"
+                value={Array.isArray(formData.tags) ? formData.tags.join(", ") : ""}
+                onChange={(event) =>
+                  setField("tags", event.target.value.split(",").map((tag) => tag.trim()).filter(Boolean))
+                }
+                placeholder="policy, capital markets, dialogue"
+              />
+            </Field>
+            {textAreaField("Excerpt", "excerpt")}
+            {textAreaField("Body content", "body")}
+            <div className="flex flex-wrap gap-x-8 gap-y-2">
+              {boolField("Published", "published")}
+              {boolField("Archived", "archived")}
             </div>
-            {renderTextarea("Excerpt", "excerpt")}
-            {renderTextarea("Body Content", "body")}
-            <div className="flex flex-wrap gap-6">
-              {renderCheckbox("Published", "published")}
-              {renderCheckbox("Archived", "archived")}
-            </div>
-            {renderSEO()}
+            {renderSeo()}
           </>
         )}
 
         {tab === "gallery" && (
           <>
-            {renderInput("Title", "title")}
-            {renderInput("Slug", "slug")}
-            {renderInput("Category", "category")}
-            {renderTextarea("Description", "description")}
-            <div className="form-field-container space-y-4">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-brand-purple/60">Images List (JSON format)</h4>
-              <textarea
-                value={JSON.stringify(formData.images || [], null, 2)}
-                onChange={(e) => {
-                  try {
-                    const parsed = JSON.parse(e.target.value);
-                    if (Array.isArray(parsed)) handleChange("images", parsed);
-                  } catch {
-                    // Ignore invalid JSON while typing
-                  }
-                }}
-                rows={6}
-                className="w-full border border-brand-purple/20 bg-brand-paper p-3 font-mono text-xs"
-                placeholder='[{"src": "/path", "alt": "desc"}]'
-              />
-              <p className="text-[10px] text-brand-ink/50 italic">Format: Array of objects with src, alt, and optional caption.</p>
+            {textField("Title", "title")}
+            {textField("Slug", "slug")}
+            {textField("Category", "category")}
+            {textAreaField("Description", "description")}
+            {renderImages()}
+            <div className="flex flex-wrap gap-x-8 gap-y-2">
+              {boolField("Published", "published")}
+              {boolField("Archived", "archived")}
             </div>
-            <div className="flex flex-wrap gap-6">
-              {renderCheckbox("Published", "published")}
-              {renderCheckbox("Archived", "archived")}
-            </div>
-            {renderSEO()}
+            {renderSeo()}
           </>
         )}
 
         {tab === "settings" && (
           <div className="space-y-8">
             <section className="space-y-4">
-              <h4 className="text-sm font-bold text-brand-purple border-b border-brand-purple/10 pb-2">Contact Information</h4>
+              <h4 className="border-b border-brand-purple/10 pb-2 text-sm font-bold text-brand-purple">
+                Contact information
+              </h4>
               <div className="grid gap-4 sm:grid-cols-2">
-                <FormField id="contact-email" label="Email Address">
-                  <input
+                <Field id="contact-email" label="Email address">
+                  <Input
                     id="contact-email"
                     type="email"
                     value={textValue(formData.contact?.email)}
-                    onChange={(e) => handleNestedChange("contact", "email", e.target.value)}
-                    className="min-h-11 w-full border border-brand-purple/20 bg-white px-3 text-sm"
+                    onChange={(event) => setNested("contact", "email", event.target.value)}
                   />
-                </FormField>
-                <FormField id="contact-phone" label="Phone Number">
-                  <input
+                </Field>
+                <Field id="contact-phone" label="Phone number">
+                  <Input
                     id="contact-phone"
                     value={textValue(formData.contact?.phone)}
-                    onChange={(e) => handleNestedChange("contact", "phone", e.target.value)}
-                    className="min-h-11 w-full border border-brand-purple/20 bg-white px-3 text-sm"
+                    onChange={(event) => setNested("contact", "phone", event.target.value)}
                   />
-                </FormField>
+                </Field>
               </div>
-              <FormField id="contact-address" label="Physical Address">
-                <textarea
+              <Field id="contact-address" label="Physical address">
+                <Textarea
                   id="contact-address"
-                  value={textValue(formData.contact?.address)}
-                  onChange={(e) => handleNestedChange("contact", "address", e.target.value)}
                   rows={2}
-                  className="w-full border border-brand-purple/20 bg-white p-3 text-sm"
+                  value={textValue(formData.contact?.address)}
+                  onChange={(event) => setNested("contact", "address", event.target.value)}
                 />
-              </FormField>
+              </Field>
             </section>
 
             <section className="space-y-4">
-              <h4 className="text-sm font-bold text-brand-purple border-b border-brand-purple/10 pb-2">Social Presence</h4>
+              <h4 className="border-b border-brand-purple/10 pb-2 text-sm font-bold text-brand-purple">
+                Social presence
+              </h4>
               <div className="grid gap-4 sm:grid-cols-2">
-                <FormField id="social-linkedin" label="LinkedIn URL">
-                  <input
+                <Field id="social-linkedin" label="LinkedIn URL">
+                  <Input
                     id="social-linkedin"
                     value={textValue(formData.socialLinks?.linkedin)}
-                    onChange={(e) => handleNestedChange("socialLinks", "linkedin", e.target.value)}
-                    className="min-h-11 w-full border border-brand-purple/20 bg-white px-3 text-sm"
+                    onChange={(event) => setNested("socialLinks", "linkedin", event.target.value)}
                   />
-                </FormField>
-                <FormField id="social-instagram" label="Instagram URL">
-                  <input
+                </Field>
+                <Field id="social-instagram" label="Instagram URL">
+                  <Input
                     id="social-instagram"
                     value={textValue(formData.socialLinks?.instagram)}
-                    onChange={(e) => handleNestedChange("socialLinks", "instagram", e.target.value)}
-                    className="min-h-11 w-full border border-brand-purple/20 bg-white px-3 text-sm"
+                    onChange={(event) => setNested("socialLinks", "instagram", event.target.value)}
                   />
-                </FormField>
+                </Field>
               </div>
             </section>
-            
+
             <section className="space-y-4">
-               <h4 className="text-sm font-bold text-brand-purple border-b border-brand-purple/10 pb-2">Branding</h4>
-               {renderInput("Site Logo URL", "logo")}
+              <h4 className="border-b border-brand-purple/10 pb-2 text-sm font-bold text-brand-purple">
+                Branding
+              </h4>
+              {textField("Site logo URL", "logo")}
             </section>
           </div>
         )}
       </div>
 
-      <div className="flex gap-3 pt-6 border-t border-brand-purple/10">
-        <button
-          type="submit"
-          disabled={isPending}
-          className="flex-1 min-h-11 rounded-sm bg-brand-purple px-5 text-sm font-semibold text-white transition-all hover:bg-brand-purple/90 disabled:opacity-50"
-        >
+      <div className="flex flex-wrap gap-3 border-t border-brand-purple/10 pt-6">
+        <Button className="flex-1" disabled={isPending} type="submit" variant="dark">
           {isPending ? "Saving changes..." : "Save changes"}
-        </button>
+        </Button>
         {onCancel && (
-          <button
-            type="button"
-            onClick={onCancel}
-            disabled={isPending}
-            className="min-h-11 rounded-sm border border-brand-purple/20 px-5 text-sm font-semibold text-brand-purple transition-all hover:bg-brand-paper disabled:opacity-50"
-          >
+          <Button disabled={isPending} onClick={onCancel} type="button" variant="outline">
             Cancel
-          </button>
+          </Button>
         )}
       </div>
     </form>
@@ -374,4 +394,22 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function textValue(value: unknown): string | number {
   return typeof value === "string" || typeof value === "number" ? value : "";
+}
+
+function toGalleryImages(value: unknown): GalleryImage[] {
+  if (!Array.isArray(value)) return [];
+  const images: GalleryImage[] = [];
+  for (const entry of value) {
+    if (!isRecord(entry)) continue;
+    images.push({
+      src: typeof entry.src === "string" ? entry.src : "",
+      alt: typeof entry.alt === "string" ? entry.alt : "",
+      caption: typeof entry.caption === "string" ? entry.caption : undefined,
+    });
+  }
+  return images;
+}
+
+function serializeGalleryImages(images: GalleryImage[]): GalleryImage[] {
+  return images.map(({ src, alt, caption }) => (caption?.trim() ? { src, alt, caption } : { src, alt }));
 }
